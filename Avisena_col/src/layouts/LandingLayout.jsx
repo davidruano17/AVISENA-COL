@@ -1,6 +1,15 @@
 import { Outlet, Link } from 'react-router-dom';
 import logoSena from '../assets/images/logo-sena-verde-complementario-svg-2022.svg';
 import gallinaBaner from '../assets/images/gallina_baner.jpg';
+import iconoproduccion from '../assets/images/icons8-gráfico-combinado-50.png';
+import iconoclasificacion from '../assets/images/icons8-test-fallido-50.png';
+import iconomortalidad from '../assets/images/icons8-corazón-con-pulso-50.png';
+import iconomorbilidad from '../assets/images/icons8-alimentando-pollo-50.png';
+import iconocorreo from '../assets/images/correo.png';
+import iconocompartir from '../assets/images/compartir.png';
+import iconoglobal from '../assets/images/internet.png';
+
+
 
 export default function LandingLayout() {
   return (
@@ -33,7 +42,7 @@ export default function LandingLayout() {
     <section className="flex items-center gap-4">
 
       <img
-        src="./src/assets/images/logo-sena-verde-complementario-svg-2022.svg"
+        src={logoSena}
         alt="logo"
         className="w-14 h-14"
       />
@@ -139,7 +148,7 @@ export default function LandingLayout() {
               <section className="px-4 md:px-20 py-8">
                 <section className=" w-full">
                   <section className="relative overflow-hidden rounded-2xl shadow-2xl">
-                    <section className="flex h-120 w-full flex-col bg-cover bg-center bg-no-repeat items-center justify-center p-6 text-center bg-[#2c1d16]" style={{ backgroundImage: 'linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), url("./src/assets/images/gallina_baner.jpg")' }}>
+                    <section className="flex h-120 w-full flex-col bg-cover bg-center bg-no-repeat items-center justify-center p-6 text-center bg-[#2c1d16]" style={{ backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), url(${gallinaBaner})` }}>
                       <article className="max-w-3xl bg-black/40 backdrop-blur-md p-8 rounded-3xl border border-white/10">
                         <h2 className="text-white text-5xl md:text-6xl font-black leading-tight">
                           ¡Bienvenido!
@@ -170,7 +179,7 @@ export default function LandingLayout() {
   {/* Tarjeta 1: Control de Producción */}
   <article className=" w-full flex flex-col items-center text-center gap-4 bg-white dark:bg-background-dark/40 p-8 rounded-[2.5rem] border border-emerald-100 dark:border-emerald-900 border-b-[6px] border-b-[#49e619] shadow-sm transition-all duration-300 ease-out hover:-translate-y-3 hover:shadow-2xl hover:border-b-[#3cd110]">
     <section className="w-20 h-20 rounded-2xl bg-[#49e619]/20 flex items-center justify-center">
-      <img src="./src/assets/images/icons8-gráfico-combinado-50.png" alt="Control de Producción" className="w-12 h-12 object-contain" />
+      <img src={iconoproduccion} alt="Control de Producción" className="w-12 h-12 object-contain" />
     </section>
     <section className="flex flex-col gap-2">
       <h2 className="text-[#004d40] dark:text-emerald-50 text-xl font-extrabold leading-tight">
@@ -185,7 +194,7 @@ export default function LandingLayout() {
   {/* Tarjeta 2: Clasificación */}
   <article className="flex flex-col items-center text-center gap-4 bg-white dark:bg-background-dark/40 p-8 rounded-[2.5rem] border border-emerald-100 dark:border-emerald-900 border-b-[6px] border-b-[#49e619] shadow-sm transition-all duration-300 ease-out hover:-translate-y-3 hover:shadow-2xl hover:border-b-[#3cd110]">
     <section className="w-20 h-20 rounded-2xl bg-[#49e619]/20 flex items-center justify-center">
-      <img src="./src/assets/images/icons8-test-fallido-50.png" alt="Clasificación" className="w-12 h-12 object-contain" />
+      <img src={iconoclasificacion} alt="Clasificación" className="w-12 h-12 object-contain" />
     </section>
     <section className="flex flex-col gap-2">
       <h2 className="text-[#004d40] dark:text-emerald-50 text-xl font-extrabold leading-tight">
@@ -200,7 +209,7 @@ export default function LandingLayout() {
   {/* Tarjeta 3: Mortalidad */}
   <article className="flex flex-col items-center text-center gap-4 bg-white dark:bg-background-dark/40 p-8 rounded-[2.5rem] border border-emerald-100 dark:border-emerald-900 border-b-[6px] border-b-[#49e619] shadow-sm transition-all duration-300 ease-out hover:-translate-y-3 hover:shadow-2xl hover:border-b-[#3cd110]">
     <section className="w-20 h-20 rounded-2xl bg-[#49e619]/20 flex items-center justify-center">
-      <img src="./src/assets/images/icons8-corazón-con-pulso-50.png" alt="Mortalidad" className="w-12 h-12 object-contain" />
+      <img src={iconomortalidad} alt="Mortalidad" className="w-12 h-12 object-contain" />
     </section>
     <section className="flex flex-col gap-2">
       <h2 className="text-[#004d40] dark:text-emerald-50 text-xl font-extrabold leading-tight">
@@ -215,7 +224,7 @@ export default function LandingLayout() {
   {/* Tarjeta 4: Morbilidad */}
   <article className="flex flex-col items-center text-center gap-4 bg-white dark:bg-background-dark/40 p-8 rounded-[2.5rem] border border-emerald-100 dark:border-emerald-900 border-b-[6px] border-b-[#49e619] shadow-sm transition-all duration-300 ease-out hover:-translate-y-3 hover:shadow-2xl hover:border-b-[#3cd110]">
     <section className="w-20 h-20 rounded-2xl bg-[#49e619]/20 flex items-center justify-center">
-      <img src="./src/assets/images/icons8-alimentando-pollo-50.png" alt="Morbilidad" className="w-12 h-12 object-contain" />
+      <img src={iconomorbilidad} alt="Morbilidad" className="w-12 h-12 object-contain" />
     </section>
     <section className="flex flex-col gap-2">
       <h2 className="text-[#004d40] dark:text-emerald-50 text-xl font-extrabold leading-tight">
@@ -256,7 +265,7 @@ export default function LandingLayout() {
               <section className="w-full mx-auto flex flex-col gap-10 px-6 md:px-20 py-12 text-center">
                 <section className="flex flex-col md:flex-row items-center justify-between gap-8">
                   <section className="flex items-center gap-3 text-emerald-900 dark:text-emerald-50">
-                    <img src="./src/assets/images/logo-sena-verde-complementario-svg-2022.svg" alt="Logo SENA" className="w-12 h-12" />
+                    <img src={logoSena} alt="Logo SENA" className="w-12 h-12" />
                     <h2 className="text-xl font-black">AVISENA COL</h2>
                   </section>
                   <nav className="flex flex-wrap items-center justify-center gap-8">
@@ -265,9 +274,9 @@ export default function LandingLayout() {
                     <a className="!text-black dark:text-emerald-400 text-sm font-medium hover:text-primary transition-colors" href="#">Soporte</a>
                   </nav>
                   <aside id="contactanos" className="flex flex-wrap justify-center gap-5">
-                    <a className="w-7 h-7 flex items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/50 text-emerald-800 dark:text-emerald-400 hover:bg-primary hover:text-emerald-950 transition-all" href="#"><span className="material-symbols-outlined text-xl"><img src="./src/assets/images/correo.png" alt="correo" /></span></a>
-                    <a className="w-7 h-7 flex items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/50 text-emerald-800 dark:text-emerald-400 hover:bg-primary hover:text-emerald-950 transition-all" href="#"><span className="material-symbols-outlined text-xl"><img src="./src/assets/images/compartir.png" alt="compartir" /></span></a>
-                    <a className="w-7 h-7 flex items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/50 text-emerald-800 dark:text-emerald-400 hover:bg-primary hover:text-emerald-950 transition-all" href="#"><span className="material-symbols-outlined text-xl"><img src="./src/assets/images/internet.png" alt="global" /> </span></a>
+                    <a className="w-7 h-7 flex items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/50 text-emerald-800 dark:text-emerald-400 hover:bg-primary hover:text-emerald-950 transition-all" href="#"><span className="material-symbols-outlined text-xl"><img src={iconocorreo} alt="correo" /></span></a>
+                    <a className="w-7 h-7 flex items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/50 text-emerald-800 dark:text-emerald-400 hover:bg-primary hover:text-emerald-950 transition-all" href="#"><span className="material-symbols-outlined text-xl"><img src={iconocompartir} alt="compartir" /></span></a>
+                    <a className="w-7 h-7 flex items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/50 text-emerald-800 dark:text-emerald-400 hover:bg-primary hover:text-emerald-950 transition-all" href="#"><span className="material-symbols-outlined text-xl"><img src={iconoglobal} alt="global" /> </span></a>
                   </aside>
                 </section>
                 <section>
