@@ -20,6 +20,8 @@ import ReportesAlimentoView from './views/reportes/ReportesAlimentoView';
 import ReportesMortalidadView from './views/reportes/ReportesMortalidadView';
 import ReportesFinanzasView from './views/reportes/ReportesFinanzasView';
 import GestionUsuariosView from './views/dashboard/GestionUsuariosView';
+import DashboardProduccion from './views/dashboard/DashboardProduccion';
+import ConfiguracionGeneral from './views/dashboard/ConfiguracionGeneral';
 
 function App() {
   return (
@@ -38,7 +40,7 @@ function App() {
         {/* Dashboard Layout Routes */}
         <Route element={<DashboardLayout />}>
           <Route path="/dashboard" element={<DashboardHome />} />
-          <Route path="/prodfunfinal" element={<ProduccionDiariaView />} />
+          <Route path="/prodfunfinal" element={<DashboardProduccion/>} />
           <Route path="/morbilidad" element={<MorbilidadView />} />
           <Route path="/mortalidad" element={<MortalidadView />} />
           <Route path="/tratamiento" element={<TratamientoView />} />
@@ -47,12 +49,11 @@ function App() {
           <Route path="/users" element={<GestionUsuariosView />} />
           <Route path="/users/register" element={<RegisterUserView />} />
           <Route path="/profile" element={<UserProfileView />} />
-          <Route path="/rep_diario
-          " element={<ReportesDiarioView />} />
-          <Route path="/rep_alimento" element={<ReportesAlimentoView />} />
-          <Route path="/rep_mortalidad" element={<ReportesMortalidadView />} />
-          <Route path="/rep_finanzas" element={<ReportesFinanzasView />} />
+          <Route path="/rep_diario" element={<ReportesDiarioView />} />
+          <Route path="/reportes" element={<ReportesAlimentoView />} />
+          <Route path="/configuracion" element={<ConfiguracionGeneral />} />
         </Route>
+
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />

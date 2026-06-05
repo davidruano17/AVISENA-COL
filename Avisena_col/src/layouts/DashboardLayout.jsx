@@ -34,21 +34,28 @@ console.log(isUsersActive);
   '/prodfunfinal': 'Producción Diaria',
   '/registro_clasificacion': 'Clasificación de Huevos',
   '/mortalidad': 'Mortalidad',
+  '/reportes': 'Reportes',
   '/morbilidad': 'Morbilidad',
   '/rep_diario': 'Reporte Producción Diaria',
   '/rep_alimento': 'Reporte Consumo de Alimento',
   '/rep_mortalidad': 'Reporte Mortalidad',
   '/rep_finanzas': 'Reporte Finanzas',
   '/profile': 'Mi Perfil',
-  '/notificaciones': 'Notificaciones'
+  '/notificaciones': 'Notificaciones',
+  '/configuracion': 'Configuración',
 };
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  
   const navigate = useNavigate();
 
   const userId = localStorage.getItem('user_id') || 'admin';
 
+  const config = () => {
+    setIsProfileMenuOpen(false);
+    navigate('/configuracion');
+  };
   // If no user is logged in, redirect to login page immediately!
   useEffect(() => {
     const token = localStorage.getItem('user_token');
@@ -97,6 +104,8 @@ console.log(isUsersActive);
     }
   };
 
+  const role = localStorage.getItem('user_id') || 'admin';
+ 
   const [currentUser, setCurrentUser] = useState(() => {
     const saved = localStorage.getItem(`user_profile_${userId}`);
     if (saved) {
@@ -157,10 +166,12 @@ console.log(isUsersActive);
           </header>
 
           <nav className="flex flex-col gap-1">
+             {role === "admin" && (
             <NavLink to="/users" className={({ isActive }) => `flex items-center h-12 rounded-lg text-slate-600 dark:text-[#becbb3] hover:bg-[#f1f5f9] dark:hover:bg-[#162035] hover:text-slate-900 dark:hover:text-white transition-all duration-200 w-full cursor-pointer box-border no-underline ${isSidebarCollapsed ? 'justify-center px-0' : 'gap-4 px-4'} ${isActive ? 'bg-[#f1f5f9] dark:bg-[#162035] text-[#49e619] dark:text-white' : ''}`}>
               <Users className="w-5 h-5 shrink-0" />
               <span className={`transition-opacity duration-200 whitespace-nowrap ${isSidebarCollapsed ? 'hidden' : 'block'}`}>Gestión de Usuarios</span>
             </NavLink>
+            )}
 
             <section className="dropdown-container">
               <button
@@ -181,8 +192,13 @@ console.log(isUsersActive);
                 </nav>
               )}
             </section>
+            <NavLink to="/reportes" className={({ isActive }) => `flex items-center h-12 rounded-lg text-slate-600 dark:text-[#becbb3] hover:bg-[#f1f5f9] dark:hover:bg-[#162035] hover:text-slate-900 dark:hover:text-white transition-all duration-200 w-full cursor-pointer box-border no-underline ${isSidebarCollapsed ? 'justify-center px-0' : 'gap-4 px-4'} ${isActive ? 'bg-[#f1f5f9] dark:bg-[#162035] text-[#49e619] dark:text-white' : ''}`}>
+              <FileText className="w-5 h-5 shrink-0" />
+              <span className={`transition-opacity duration-200 whitespace-nowrap ${isSidebarCollapsed ? 'hidden' : 'block'}`}>Reportes</span>
+            </NavLink>
 
-            <section className="dropdown-container">
+
+           {/*  <section className="dropdown-container">
               <button
                 onClick={() => toggleDropdown('reportes')}
                 className={`flex items-center h-12 rounded-lg text-slate-600 dark:text-[#becbb3] hover:bg-[#f1f5f9] dark:hover:bg-[#162035] hover:text-slate-900 dark:hover:text-white transition-all duration-200 w-full cursor-pointer box-border no-underline bg-transparent border-none ${isSidebarCollapsed ? 'justify-center px-0' : 'gap-4 px-4'}`}
@@ -199,7 +215,7 @@ console.log(isUsersActive);
                   <Link to="/rep_finanzas" className="text-[12px] font-medium text-[#64748b] dark:text-[#becbb3] text-left no-underline transition-colors duration-200 hover:text-primary">Finanzas Granja</Link>
                 </nav>
               )}
-            </section>
+            </section> */}
 
             <NavLink to="/notificaciones" className={({ isActive }) => `flex items-center h-12 rounded-lg text-slate-600 dark:text-[#becbb3] hover:bg-[#f1f5f9] dark:hover:bg-[#162035] hover:text-slate-900 dark:hover:text-white transition-all duration-200 w-full cursor-pointer box-border no-underline ${isSidebarCollapsed ? 'justify-center px-0' : 'gap-4 px-4'} ${isActive ? 'bg-[#f1f5f9] dark:bg-[#162035] text-[#49e619] dark:text-white' : ''}` }>
               <Bell className="w-5 h-5 shrink-0" />
@@ -278,7 +294,7 @@ console.log(isUsersActive);
                       </Link>
 
                       <button
-                        onClick={() => setIsProfileMenuOpen(false)}
+                        onClick={config}
                         className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors group text-left"
                       >
                         <div className="flex items-center gap-3">

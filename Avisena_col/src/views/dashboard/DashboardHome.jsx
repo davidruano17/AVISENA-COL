@@ -6,7 +6,8 @@ export default function DashboardHome() {
     name: 'Instructor Líder',
     role: 'Instructor Líder'
   });
-
+    const [greeting, setGreeting] = useState('');
+    const [currentDate, setCurrentDate] = useState('');
   useEffect(() => {
     const userId = localStorage.getItem('user_id') || 'admin';
     const userMap = {
@@ -24,13 +25,47 @@ export default function DashboardHome() {
       }
     };
     setCurrentUser(userMap[userId] || userMap.admin);
+
+    setCurrentUser(userMap[userId] || userMap.admin);
+
+  const hour = new Date().getHours();
+
+  if (hour < 12) {
+    setGreeting('Buenos días');
+  } else if (hour < 18) {
+    setGreeting('Buenas tardes');
+  } else {
+    setGreeting('Buenas noches');
+  }
+
+  setCurrentDate(
+    new Date().toLocaleDateString('es-CO', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })
+  );
   }, []);
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-extrabold text-slate-900">Bienvenido, {currentUser.name}</h1>
-        <p className="text-slate-500 mt-2">Resumen general de la actividad de la granja y reportes recientes de la jornada.</p>
+      <div className="bg-white rounded-2xl p-8 shadow-sm border border-slate-100">
+        <h1 className="text-4xl font-extrabold text-slate-900">
+          {greeting}, {currentUser.name}
+        </h1>
+
+        
+
+        <p className="text-slate-500 mt-3">
+          Bienvenido al sistema de gestión avícola AVISENA.
+          Desde aquí podrás administrar la producción, monitorear la salud de las aves,
+          registrar eventos importantes y consultar reportes de la granja.
+        </p>
+
+        <p className="text-sm text-slate-400 mt-4 capitalize">
+          📅 {currentDate}
+        </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

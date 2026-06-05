@@ -1,7 +1,7 @@
 import jsPDF from 'jspdf';
-import FormMortalidad from '../../components/FormMortalidad'
+import FormMortalidad from '../components/FormMortalidad'
 import { useState, useEffect, useMemo } from 'react';
-import EstadisticasMortalidad from '../../components/EstadisticasMortalidad';
+import EstadisticasMortalidad from '../components/EstadisticasMortalidad';
 
 export default function MortalidadView() {
 

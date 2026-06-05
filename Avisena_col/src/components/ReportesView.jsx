@@ -1,6 +1,6 @@
 import { useState } from "react";
-import FiltrosReportes from "../../components/FiltrosReportes";
-import TablaReportes from "../../components/TablaReportes";
+import FiltrosReportes from "../components/FiltrosReportes";
+import TablaReportes from "../components/TablaReportes";
 
 export default function ReportesView() {
   const [filtros, setFiltros] = useState({
