@@ -43,7 +43,9 @@ console.log(isUsersActive);
   '/profile': 'Mi Perfil',
   '/notificaciones': 'Notificaciones',
   '/configuracion': 'Configuración',
-  '/lotes': 'Administracion de lotes',
+  '/lotes': 'Administrar lotes',
+   '/dashboard': 'Inicio',
+   '/finanzas': 'Finanzas',
 };
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -166,9 +168,12 @@ console.log(isUsersActive);
             </hgroup>
           </header>
           
-          
-
           <nav className="flex flex-col gap-1">
+            <NavLink to="/dashboard" className={({ isActive }) => `flex items-center h-12 rounded-lg text-slate-600 dark:text-[#becbb3] hover:bg-[#f1f5f9] dark:hover:bg-[#162035] hover:text-slate-900 dark:hover:text-white transition-all duration-200 w-full cursor-pointer box-border no-underline ${isSidebarCollapsed ? 'justify-center px-0' : 'gap-4 px-4'} ${isActive ? 'bg-[#f1f5f9] dark:bg-[#162035] text-[#49e619] dark:text-white' : ''}`}>
+              <Users className="w-5 h-5 shrink-0" />
+              <span className={`transition-opacity duration-200 whitespace-nowrap ${isSidebarCollapsed ? 'hidden' : 'block'}`}>Inicio</span>
+            </NavLink>
+          
              {role === "admin" && (
             <NavLink to="/users" className={({ isActive }) => `flex items-center h-12 rounded-lg text-slate-600 dark:text-[#becbb3] hover:bg-[#f1f5f9] dark:hover:bg-[#162035] hover:text-slate-900 dark:hover:text-white transition-all duration-200 w-full cursor-pointer box-border no-underline ${isSidebarCollapsed ? 'justify-center px-0' : 'gap-4 px-4'} ${isActive ? 'bg-[#f1f5f9] dark:bg-[#162035] text-[#49e619] dark:text-white' : ''}`}>
               <Users className="w-5 h-5 shrink-0" />
@@ -203,6 +208,12 @@ console.log(isUsersActive);
               <FileText className="w-5 h-5 shrink-0" />
               <span className={`transition-opacity duration-200 whitespace-nowrap ${isSidebarCollapsed ? 'hidden' : 'block'}`}>Reportes</span>
             </NavLink>
+            {role === "admin" && (
+            <NavLink to="/finanzas" className={({ isActive }) => `flex items-center h-12 rounded-lg text-slate-600 dark:text-[#becbb3] hover:bg-[#f1f5f9] dark:hover:bg-[#162035] hover:text-slate-900 dark:hover:text-white transition-all duration-200 w-full cursor-pointer box-border no-underline ${isSidebarCollapsed ? 'justify-center px-0' : 'gap-4 px-4'} ${isActive ? 'bg-[#f1f5f9] dark:bg-[#162035] text-[#49e619] dark:text-white' : ''}`}>
+              <FileText className="w-5 h-5 shrink-0" />
+              <span className={`transition-opacity duration-200 whitespace-nowrap ${isSidebarCollapsed ? 'hidden' : 'block'}`}>Finanzas</span>
+            </NavLink>
+            )}
 
 
            {/*  <section className="dropdown-container">
@@ -338,6 +349,16 @@ console.log(isUsersActive);
         {/* MAIN VIEW FOR ROUTING */}
         <section id="main-view" className="flex-1 overflow-y-auto p-8 animate-[fadeIn_0.3s_ease-in-out]">
           <Outlet />
+          <footer className="mt-2 py-8 border-t border-slate-200 dark:border-slate-800 text-center">
+            <section className="flex flex-col items-center gap-4">
+              <section className="flex items-center gap-6 opacity-60">
+                <section className="flex flex-col items-center">
+                  <span className="text-xs">Sistema de Gestión Avicola</span>
+                </section>
+              </section>
+              <p className="text-[11px] text-slate-500">© 2026 AVISENA COL</p>
+            </section>
+          </footer>
         </section>
       </main>
     </section>

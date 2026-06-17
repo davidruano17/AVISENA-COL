@@ -94,15 +94,12 @@ const ConfiguracionGeneral = () => {
     showToast('Cambios revertidos', 'info');
   };
 
-
-
   return (
-    <div className="bg-surface font-body-md text-on-surface min-h-screen overflow-x-hidden transition-colors duration-200">
-      
+    <div className="bg-surface font-body-md text-on-surface overflow-x-hidden transition-colors duration-200">
       {/* TOAST NOTIFICATION */}
       {toast.show && (
-        <div className={`fixed bottom-20 md:bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg text-white transition-all transform translate-y-0 duration-300 ${
-          toast.type === 'success' ? 'bg-[#39A900]' : 
+        <div className={`fixed bottom-20 md:bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-white transition-all duration-300 ${
+          toast.type === 'success' ? 'bg-[#1B7A0A]' : 
           toast.type === 'warning' ? 'bg-error' : 'bg-secondary'
         }`}>
           <span className="material-symbols-outlined">
@@ -113,214 +110,168 @@ const ConfiguracionGeneral = () => {
         </div>
       )}
 
-      {/* MAIN CONTENT AREA */}
-      <main className="w-full min-h-screen pb-24 md:pb-lg">
-        {/* TOP APP BAR */}
+      <div className="max-w-[1240px] mx-auto px-4 md:px-6 lg:px-10 py-6 pb-24">
+        <div className="mb-8">
+          <h3 className="font-headline-xl text-headline-xl text-on-surface">Configuración</h3>
+          <p className="mt-2 font-body-lg text-body-lg text-on-surface-variant">Administra las preferencias básicas y el entorno visual de tu panel de control.</p>
+        </div>
 
-
-        {/* PAGE CONTENT CONTAINER */}
-        <div className="w-full mx-auto px-md md:px-lg py-lg">
-          <div className="mb-xl">
-            <h3 className="font-headline-xl text-headline-xl text-on-surface">Configuración General</h3>
-            <p className="font-body-lg text-body-lg text-on-surface-variant">Administra las preferencias básicas y el entorno visual de tu panel de control.</p>
-          </div>
-
-          {/* GRID SECTIONS */}
-          <div className="grid grid-cols-1 gap-xl">
-            
-            {/* SECTION 1: APARIENCIA (Bento Style) */}
-            <section className="bg-surface-container-lowest dark:bg-inverse-surface/30 border border-outline-variant rounded-xl p-lg transition-colors mb-lg">
-              <div className="flex items-center gap-sm mb-lg">
+        <div className="space-y-6">
+          <section className="rounded-[28px] border border-outline-variant bg-surface-container-lowest p-6 shadow-sm shadow-surface/40 transition-colors">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-6">
+              <div className="flex items-center gap-3">
                 <span className="material-symbols-outlined text-primary">palette</span>
-                <h4 className="font-headline-md text-headline-md text-on-surface">Apariencia</h4>
-              </div>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-xl">
-                {/* Light Theme Option */}
-                <div 
-                  className={`theme-selector cursor-pointer group relative overflow-hidden rounded-lg border-2 p-6 mb-lg transition-all hover:shadow-md ${
-                    theme === 'light' 
-                      ? 'border-primary-container ring-2 ring-offset-2 ring-primary bg-white' 
-                      : 'border-transparent bg-white/40 dark:bg-white/5'
-                  }`}
-                  onClick={() => setThemeState('light')}
-                >
-                  <div className="h-24 w-full bg-surface-container-low dark:bg-neutral-800 rounded-md mb-3 flex flex-col p-4 gap-3">
-                    <div className="h-2 w-1/2 bg-outline-variant rounded"></div>
-                    <div className="h-8 w-full bg-white dark:bg-neutral-700 border border-outline-variant dark:border-neutral-600 rounded"></div>
-                    <div className="mt-auto flex justify-end">
-                      <div className="h-4 w-4 rounded-full bg-[#39A900]"></div>
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-center px-1">
-                    <span className="text-label-md font-label-md text-on-surface">Tema Claro</span>
-                    <span className={`material-symbols-outlined text-primary text-sm transition-opacity ${
-                      theme === 'light' ? 'opacity-100' : 'opacity-0'
-                    }`} style={{ fontVariationSettings: "'FILL' 1" }}>
-                      check_circle
-                    </span>
-                  </div>
-                </div>
-
-                {/* Dark Theme Option */}
-                <div 
-                  className={`theme-selector cursor-pointer group relative overflow-hidden rounded-lg border-2 p-6 mb-lg transition-all hover:shadow-md ${
-                    theme === 'dark' 
-                      ? 'border-primary-container ring-2 ring-offset-2 ring-primary bg-inverse-surface' 
-                      : 'border-transparent bg-inverse-surface/40 dark:bg-inverse-surface'
-                  }`}
-                  onClick={() => setThemeState('dark')}
-                >
-                  <div className="h-24 w-full bg-on-surface-variant dark:bg-neutral-900 rounded-md mb-3 flex flex-col p-4 gap-3">
-                    <div className="h-2 w-1/2 bg-outline rounded"></div>
-                    <div className="h-8 w-full bg-on-surface dark:bg-neutral-800 rounded border border-outline dark:border-neutral-700"></div>
-                    <div className="mt-auto flex justify-end">
-                      <div className="h-4 w-4 rounded-full bg-primary-container"></div>
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-center px-1">
-                    <span className="text-label-md font-label-md text-white">Tema Oscuro</span>
-                    <span className={`material-symbols-outlined text-primary-fixed-dim text-sm transition-opacity ${
-                      theme === 'dark' ? 'opacity-100' : 'opacity-0'
-                    }`} style={{ fontVariationSettings: "'FILL' 1" }}>
-                      check_circle
-                    </span>
-                  </div>
-                </div>
-
-                {/* Auto Theme Option */}
-                <div 
-                  className={`theme-selector cursor-pointer group relative overflow-hidden rounded-lg border-2 p-6 mb-lg transition-all hover:shadow-md ${
-                    theme === 'auto' 
-                      ? 'border-primary-container ring-2 ring-offset-2 ring-primary bg-gradient-to-br from-white to-inverse-surface' 
-                      : 'border-transparent bg-gradient-to-br from-white/40 to-inverse-surface/40 dark:from-white/5 dark:to-inverse-surface'
-                  }`}
-                  onClick={() => setThemeState('auto')}
-                >
-                  <div className="h-24 w-full rounded-md mb-3 flex overflow-hidden">
-                    <div className="w-1/2 bg-surface-container-low dark:bg-neutral-800 h-full flex flex-col p-4 gap-3">
-                      <div className="h-2 w-3/4 bg-outline-variant rounded"></div>
-                      <div className="h-8 w-full bg-white dark:bg-neutral-700 border border-outline-variant dark:border-neutral-600 rounded"></div>
-                    </div>
-                    <div className="w-1/2 bg-on-surface-variant dark:bg-neutral-900 h-full flex flex-col p-4 gap-3">
-                      <div className="h-2 w-3/4 bg-outline rounded"></div>
-                      <div className="h-8 w-full bg-on-surface dark:bg-neutral-800 rounded border border-outline dark:border-neutral-700"></div>
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-center px-1">
-                    <span className="text-label-md font-label-md text-on-surface dark:text-white">Automático</span>
-                    <span className={`material-symbols-outlined text-primary text-sm transition-opacity ${
-                      theme === 'auto' ? 'opacity-100' : 'opacity-0'
-                    }`} style={{ fontVariationSettings: "'FILL' 1" }}>
-                      check_circle
-                    </span>
-                  </div>
+                <div>
+                  <h4 className="font-headline-md text-headline-md text-on-surface">Apariencia</h4>
+                  <p className="text-label-sm text-on-surface-variant">Elige el aspecto de la aplicación.</p>
                 </div>
               </div>
-            </section>
-
-            {/* SECTION 2 & 3: IDIOMA & PREFERENCIAS SYSTEM (Two-column layout) */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-xl">
-              
-              {/* IDIOMA */}
-              <section className="bg-surface-container-lowest dark:bg-inverse-surface/30 border border-outline-variant rounded-xl p-lg flex flex-col transition-colors mb-lg">
-                <div className="flex items-center gap-sm mb-lg">
-                  <span className="material-symbols-outlined text-primary">language</span>
-                  <h4 className="font-headline-md text-headline-md text-on-surface">Idioma</h4>
-                </div>
-                
-                <div className="relative group">
-                  <select 
-                    value={language}
-                    onChange={(e) => setLanguage(e.target.value)}
-                    className="w-full appearance-none bg-white dark:bg-neutral-800 border border-outline-variant dark:border-neutral-700 rounded-lg px-md py-sm text-on-surface focus:ring-2 focus:ring-secondary-fixed-dim/20 focus:border-secondary transition-all outline-none"
-                  >
-                    <option value="es">Español (Castellano)</option>
-                    <option value="en">English (US)</option>
-                    <option value="pt">Português (Brasil)</option>
-                  </select>
-                  <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant">
-                    expand_more
-                  </span>
-                </div>
-                <p className="mt-sm text-label-sm text-on-surface-variant">Selecciona el idioma principal para la interfaz y reportes.</p>
-              </section>
-
-              {/* PREFERENCIAS SISTEMA */}
-              <section className="bg-surface-container-lowest dark:bg-inverse-surface/30 border border-outline-variant rounded-xl p-lg transition-colors mb-lg">
-                <div className="flex items-center gap-sm mb-lg">
-                  <span className="material-symbols-outlined text-primary">settings_suggest</span>
-                  <h4 className="font-headline-md text-headline-md text-on-surface">Sistema</h4>
-                </div>
-                
-                <div className="space-y-lg">
-                  {/* Toggle 1 */}
-                  <div className="flex items-center justify-between group">
-                    <span className="text-body-md font-medium text-on-surface">Recordar sesión</span>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input 
-                        type="checkbox" 
-                        checked={rememberSession} 
-                        onChange={(e) => setRememberSession(e.target.checked)}
-                        className="sr-only peer"
-                      />
-                      <div className="w-11 h-6 bg-outline-variant dark:bg-neutral-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-                    </label>
-                  </div>
-                  <div className="h-[1px] bg-surface-container dark:bg-neutral-800 w-full"></div>
-
-                  {/* Toggle 2 */}
-                  <div className="flex items-center justify-between group">
-                    <span className="text-body-md font-medium text-on-surface">Notificaciones de escritorio</span>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input 
-                        type="checkbox" 
-                        checked={desktopNotifications} 
-                        onChange={(e) => setDesktopNotifications(e.target.checked)}
-                        className="sr-only peer"
-                      />
-                      <div className="w-11 h-6 bg-outline-variant dark:bg-neutral-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-                    </label>
-                  </div>
-                  <div className="h-[1px] bg-surface-container dark:bg-neutral-800 w-full"></div>
-
-                  {/* Toggle 3 */}
-                  <div className="flex items-center justify-between group">
-                    <span className="text-body-md font-medium text-on-surface">Auto-guardado</span>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input 
-                        type="checkbox" 
-                        checked={autoSave} 
-                        onChange={(e) => setAutoSave(e.target.checked)}
-                        className="sr-only peer"
-                      />
-                      <div className="w-11 h-6 bg-outline-variant dark:bg-neutral-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-                    </label>
-                  </div>
-                </div>
-              </section>
             </div>
 
+            <div className="grid gap-4 lg:grid-cols-3">
+              <div
+                onClick={() => setThemeState('light')}
+                className={`cursor-pointer rounded-3xl border px-4 py-4 transition-all duration-200 ${
+                  theme === 'light'
+                    ? 'border-primary bg-white shadow-sm'
+                    : 'border-outline-variant bg-surface'
+                } hover:shadow-lg`}
+              >
+                <div className="rounded-3xl border border-outline-variant bg-surface-container p-4 mb-4">
+                  <div className="h-16 rounded-2xl bg-white" />
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="font-label-md text-on-surface">Tema Claro</span>
+                  <span className={`material-symbols-outlined text-primary ${theme === 'light' ? 'opacity-100' : 'opacity-0'} transition-opacity`} style={{ fontVariationSettings: "'FILL' 1" }}>
+                    check_circle
+                  </span>
+                </div>
+              </div>
+
+              <div
+                onClick={() => setThemeState('dark')}
+                className={`cursor-pointer rounded-3xl border px-4 py-4 transition-all duration-200 ${
+                  theme === 'dark'
+                    ? 'border-primary bg-inverse-surface shadow-sm'
+                    : 'border-outline-variant bg-surface'
+                } hover:shadow-lg`}
+              >
+                <div className="rounded-3xl border border-outline-variant bg-on-surface-variant p-4 mb-4">
+                  <div className="h-16 rounded-2xl bg-[#161b2c]" />
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="font-label-md text-on-surface">Tema Oscuro</span>
+                  <span className={`material-symbols-outlined text-primary ${theme === 'dark' ? 'opacity-100' : 'opacity-0'} transition-opacity`} style={{ fontVariationSettings: "'FILL' 1" }}>
+                    check_circle
+                  </span>
+                </div>
+              </div>
+
+              <div
+                onClick={() => setThemeState('auto')}
+                className={`cursor-pointer rounded-3xl border px-4 py-4 transition-all duration-200 ${
+                  theme === 'auto'
+                    ? 'border-primary bg-gradient-to-br from-white to-inverse-surface shadow-sm'
+                    : 'border-outline-variant bg-surface'
+                } hover:shadow-lg`}
+              >
+                <div className="rounded-3xl border border-outline-variant bg-surface p-4 mb-4 grid grid-cols-2 gap-2">
+                  <div className="h-16 rounded-2xl bg-white" />
+                  <div className="h-16 rounded-2xl bg-on-surface-variant" />
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="font-label-md text-on-surface">Automático</span>
+                  <span className={`material-symbols-outlined text-primary ${theme === 'auto' ? 'opacity-100' : 'opacity-0'} transition-opacity`} style={{ fontVariationSettings: "'FILL' 1" }}>
+                    check_circle
+                  </span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <div className="grid gap-6 xl:grid-cols-[minmax(320px,420px)_minmax(520px,1fr)]">
+            <section className="rounded-[28px] border border-outline-variant bg-surface-container-lowest p-6 transition-colors">
+              <div className="flex items-center gap-3 mb-6">
+                <span className="material-symbols-outlined text-primary">language</span>
+                <div>
+                  <h4 className="font-headline-md text-headline-md text-on-surface">Idioma</h4>
+                </div>
+              </div>
+              <div className="relative">
+                <select
+                  value={language}
+                  onChange={(e) => setLanguage(e.target.value)}
+                  className="w-full appearance-none rounded-2xl border border-outline-variant bg-white px-4 py-3 text-on-surface shadow-sm outline-none transition duration-200 focus:border-secondary-fixed-dim focus:ring-2 focus:ring-secondary-fixed-dim/20"
+                >
+                  <option value="es">Español (Castellano)</option>
+                  <option value="en">English (US)</option>
+                  <option value="pt">Português (Brasil)</option>
+                </select>
+                <span className="material-symbols-outlined pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant">
+                  expand_more
+                </span>
+              </div>
+              <p className="mt-3 text-label-sm text-on-surface-variant">Selecciona el idioma principal para la interfaz.</p>
+            </section>
+
+            <section className="rounded-[28px] border border-outline-variant bg-surface-container-lowest p-6 transition-colors">
+              <div className="flex items-center gap-3 mb-6">
+                <span className="material-symbols-outlined text-primary">settings_suggest</span>
+                <div>
+                  <h4 className="font-headline-md text-headline-md text-on-surface">Sistema</h4>
+                </div>
+              </div>
+              <div className="space-y-5">
+                {[
+                  {
+                    label: 'Recordar sesión',
+                    checked: rememberSession,
+                    onChange: (value) => setRememberSession(value)
+                  },
+                  {
+                    label: 'Notificaciones de escritorio',
+                    checked: desktopNotifications,
+                    onChange: (value) => setDesktopNotifications(value)
+                  },
+                  {
+                    label: 'Auto-guardado',
+                    checked: autoSave,
+                    onChange: (value) => setAutoSave(value)
+                  }
+                ].map((toggle) => (
+                  <div key={toggle.label} className="flex items-center justify-between gap-4">
+                    <span className="text-body-md font-medium text-on-surface">{toggle.label}</span>
+                    <button
+                      type="button"
+                      onClick={() => toggle.onChange(!toggle.checked)}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ${toggle.checked ? 'bg-primary' : 'bg-outline-variant'}`}
+                    >
+                      <span
+                        className={`absolute left-1 top-1 h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200 ${toggle.checked ? 'translate-x-5' : 'translate-x-0'}`}
+                      />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </section>
           </div>
 
-          {/* FOOTER ACTIONS */}
-          <div className="mt-xl flex justify-end gap-xl">
-            <button 
-              className="px-xl py-sm rounded-lg border border-outline text-on-surface-variant font-bold hover:bg-surface-container-low dark:hover:bg-neutral-800 transition-colors"
+          <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+            <button
+              className="w-full rounded-2xl border border-outline bg-white px-6 py-3 text-on-surface-variant font-semibold transition hover:bg-surface-container-low"
               onClick={handleCancel}
             >
               Cancelar
             </button>
-            <button 
-              className="px-xl py-sm rounded-lg bg-primary text-on-primary font-bold hover:bg-opacity-90 active:scale-95 transition-all shadow-md"
+            <button
+              className="w-full rounded-2xl bg-primary px-6 py-3 text-on-primary font-semibold transition hover:bg-primary/90"
               onClick={handleSave}
             >
               Guardar Cambios
             </button>
           </div>
         </div>
-      </main>
-
+      </div>
     </div>
   );
 };
