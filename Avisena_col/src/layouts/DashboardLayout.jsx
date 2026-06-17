@@ -43,6 +43,7 @@ console.log(isUsersActive);
   '/profile': 'Mi Perfil',
   '/notificaciones': 'Notificaciones',
   '/configuracion': 'Configuración',
+  '/lotes': 'Administracion de lotes',
 };
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -174,9 +175,9 @@ console.log(isUsersActive);
               <span className={`transition-opacity duration-200 whitespace-nowrap ${isSidebarCollapsed ? 'hidden' : 'block'}`}>Gestión de Usuarios</span>
             </NavLink>
             )}
-            <NavLink to="/galpones" className={({ isActive }) => `flex items-center h-12 rounded-lg text-slate-600 dark:text-[#becbb3] hover:bg-[#f1f5f9] dark:hover:bg-[#162035] hover:text-slate-900 dark:hover:text-white transition-all duration-200 w-full cursor-pointer box-border no-underline ${isSidebarCollapsed ? 'justify-center px-0' : 'gap-4 px-4'} ${isActive ? 'bg-[#f1f5f9] dark:bg-[#162035] text-[#49e619] dark:text-white' : ''}`}>
+            <NavLink to="/lotes" className={({ isActive }) => `flex items-center h-12 rounded-lg text-slate-600 dark:text-[#becbb3] hover:bg-[#f1f5f9] dark:hover:bg-[#162035] hover:text-slate-900 dark:hover:text-white transition-all duration-200 w-full cursor-pointer box-border no-underline ${isSidebarCollapsed ? 'justify-center px-0' : 'gap-4 px-4'} ${isActive ? 'bg-[#f1f5f9] dark:bg-[#162035] text-[#49e619] dark:text-white' : ''}`}>
               <Users className="w-5 h-5 shrink-0" />
-              <span className={`transition-opacity duration-200 whitespace-nowrap ${isSidebarCollapsed ? 'hidden' : 'block'}`}>Administrar Lotes</span>
+              <span className={`transition-opacity duration-200 whitespace-nowrap ${isSidebarCollapsed ? 'hidden' : 'block'}`}>Administrar lotes</span>
             </NavLink>
 
             <section className="dropdown-container">

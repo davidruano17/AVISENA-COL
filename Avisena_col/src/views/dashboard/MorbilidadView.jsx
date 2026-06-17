@@ -129,7 +129,7 @@ export default function MorbilidadView() {
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8 justify-between">
           <section className="lg:col-span-2 text-left">
             <h2 className="text-3xl font-bold mb-2">Registro de Morbilidad y Causas</h2>
-            <p className="text-slate-500 dark:text-slate-400">Control y seguimiento de síntomas en aves.</p>
+            <p className="text-slate-500 dark:text-slate-400 text-lg font-normal">Control y seguimiento de síntomas en aves.</p>
           </section>
           <section className="flex justify-end items-center">
             <button

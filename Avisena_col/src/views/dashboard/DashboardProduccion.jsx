@@ -226,7 +226,7 @@ const DashboardProduccion = () => {
         </header>
 
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-          <h1 className="text-xl md:text-2xl font-bold text-slate-900">
+          <h1 className="text-3xl font-bold mb-2">
             Registro de Producción
           </h1>
 

@@ -50,7 +50,7 @@ export default function MortalidadView() {
           <main className="w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <section className="flex flex-wrap justify-between items-end gap-4 mb-8">
               <section className="flex flex-col gap-1">
-                <h1 className="text-slate-900 text-5xl font-black leading-tight tracking-tight">
+                <h1 className="text-3xl font-bold mb-2">
                   Mortalidad de las aves
                 </h1>
                 <p className="text-slate-500 text-lg">
