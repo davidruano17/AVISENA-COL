@@ -34,7 +34,7 @@ function App() {
 
         {/* Auth Routes */}
         <Route path="/login" element={<LoginView />} />
-        <Route path="/register" element={<RegisterView />} />
+        
         <Route path="/forgot-password" element={<ForgotPasswordView />} />
 
         {/* Dashboard Layout Routes */}

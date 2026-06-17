@@ -30,7 +30,6 @@ export default function ClasificacionView() {
         registro: false,
         exito: false,
         borrado: false,
-        historial: false,
         detalle: false
     });
 
@@ -45,6 +44,8 @@ export default function ClasificacionView() {
     });
 
     const [historial, setHistorial] = useState([]);
+    const [filtroGalpon, setFiltroGalpon] = useState("");
+    const [selectedRecordIndex, setSelectedRecordIndex] = useState(null);
 
     useEffect(() => {
         const saved = localStorage.getItem('avisena_storage');
@@ -56,8 +57,6 @@ export default function ClasificacionView() {
             localStorage.setItem('avisena_storage', JSON.stringify(historial));
         }
     }, [historial]);
-
-    const [selectedRecordIndex, setSelectedRecordIndex] = useState(null);
 
     const openModal = (name) => setModals(prev => ({ ...prev, [name]: true }));
     const closeModal = (name) => {
@@ -128,7 +127,10 @@ export default function ClasificacionView() {
             detalles: { ...tableData }
         };
 
-        setHistorial(prev => [...prev, registro]);
+        const nuevoHistorial = [...historial, registro];
+        setHistorial(nuevoHistorial);
+        localStorage.setItem('avisena_storage', JSON.stringify(nuevoHistorial));
+        
         closeModal('registro');
         openModal('exito');
 
@@ -156,6 +158,7 @@ export default function ClasificacionView() {
                 localStorage.setItem('avisena_storage', JSON.stringify(copy));
                 return copy;
             });
+            if (selectedRecordIndex === index) closeModal('detalle');
         }
     };
 
@@ -179,36 +182,104 @@ export default function ClasificacionView() {
         link.click();
     };
 
-    return (
-        <div className="min-h-screen bg-gray-50 text-gray-800 antialiased">
-            <header className="bg-white border-b border-gray-200 sticky top-0 z-40 px-6 py-4">
-                <nav className="max-w-6xl mx-auto flex justify-between items-center">
-                    
-                    <aside>
-                        <button 
-                            type="button" 
-                            className="text-green-600 hover:text-green-700 font-bold transition-colors text-sm tracking-wider"
-                            onClick={() => openModal('historial')}
-                        >
-                            HISTORIAL COMPLETO
-                        </button>
-                    </aside>
-                </nav>
-            </header>
+    const historialFiltrado = historial.filter(reg => 
+        reg.galpon.toString().includes(filtroGalpon)
+    );
 
-            <main className="max-w-4xl mx-auto mt-12 px-4">
-                <section className="bg-slate-900 text-white rounded-3xl p-10 text-center shadow-xl">
-                    <header className="max-w-xl mx-auto">
-                        <h1 className="text-3xl font-extrabold mb-2">Clasificación de Huevos</h1>
-                        <p className="text-slate-400 text-sm">Gestión de recolección y clasificación — Unidad Avícola SENA</p>
-                        <button 
-                            type="button" 
-                            className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-xl mt-6 transition-transform transform hover:scale-105 active:scale-95 shadow-lg"
-                            onClick={() => openModal('registro')}
-                        >
-                            + REGISTRAR RECOLECCIÓN
-                        </button>
+    return (
+        <div className="min-h-screen bg-slate-50 text-gray-800 antialiased font-sans">
+            
+
+            <main className="max-w-6xl mx-auto mt-12 px-6 pb-16 space-y-12">
+                {/* BANNER PRINCIPAL */}
+                <section className="flex flex-col md:flex-row md:justify-between md:items-center bg-white rounded-2xl p-8 shadow-sm border border-gray-100 gap-6">
+                    <header>
+                        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Registro de Clasificación de Huevos</h1>
+                        <p className="text-gray-500 text-sm mt-1">Control y seguimiento de recolección diaria — Unidad Avícola SENA</p>
                     </header>
+                    <button 
+                        type="button" 
+                        className="bg-[#49e619] hover:bg-[#3cd110] text-slate-950 font-extrabold py-3.5 px-6 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 tracking-wide text-sm"
+                        onClick={() => openModal('registro')}
+                    >
+                        <span className="text-lg font-black">+</span> Agregar Nueva Clasificación
+                    </button>
+                </section>
+
+                {/* SECCIÓN DEL HISTORIAL INTEGRADO */}
+                <section className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <header className="p-6 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <h2 className="text-lg font-bold text-slate-900">Historial de Clasificación</h2>
+                        <div className="flex items-center gap-3">
+                            <input 
+                                type="text" 
+                                placeholder="Filtrar por galpón..." 
+                                value={filtroGalpon}
+                                onChange={(e) => setFiltroGalpon(e.target.value)}
+                                className="bg-slate-50 border border-gray-200 rounded-xl px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-green-500 w-48 transition-all"
+                            />
+                            <button 
+                                type="button" 
+                                title="Exportar a Excel"
+                                className="bg-[#49e619] hover:bg-[#3cd110] text-slate-950 p-2.5 rounded-xl transition-colors shadow-sm"
+                                onClick={handleExportarExcel}
+                            >
+                            📄
+                            </button>
+                        </div>
+                    </header>
+
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse text-xs uppercase tracking-wider font-semibold">
+                            <thead>
+                                <tr className="bg-slate-50 text-gray-400 border-b border-gray-100">
+                                    <th className="p-4">ID / Fecha</th>
+                                    <th className="p-4">Galpón</th>
+                                    <th className="p-4">Línea</th>
+                                    <th className="p-4">Panales</th>
+                                    <th className="p-4">Total</th>
+                                    <th className="p-4">Responsable</th>
+                                    <th className="p-4 text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100 normal-case font-normal text-sm text-gray-700">
+                                {historialFiltrado.length === 0 ? (
+                                    <tr>
+                                        <td colSpan="7" className="text-center py-12 text-gray-400 font-medium">
+                                            No se encontraron registros de clasificación.
+                                        </td>
+                                    </tr>
+                                ) : historialFiltrado.map((reg, index) => (
+                                    <tr key={index} className="hover:bg-slate-50/60 transition-colors">
+                                        <td className="p-4">
+                                            <span className="font-bold text-slate-900 block">{reg.id}</span>
+                                            <span className="text-xs text-gray-400 block mt-0.5">{reg.fecha}</span>
+                                        </td>
+                                        <td className="p-4 font-medium text-slate-800">N° {reg.galpon}</td>
+                                        <td className="p-4 text-gray-600">{reg.linea}</td>
+                                        <td className="p-4 font-bold text-slate-900">{reg.panales} Uds</td>
+                                        <td className="p-4 font-bold text-green-600">{reg.total}</td>
+                                        <td className="p-4 text-gray-500">{reg.responsable}</td>
+                                        <td className="p-4">
+                                            <div className="flex justify-center gap-2">
+                                                <button type="button" className="bg-slate-100 hover:bg-slate-200 text-slate-700 p-2 rounded-lg transition-colors" title="Ver Detalle" onClick={() => verDetalle(index)}>👁️</button>
+                                                <button type="button" className="bg-red-50 hover:bg-red-100 text-red-600 p-2 rounded-lg transition-colors" title="Eliminar" onClick={() => eliminarRegistro(index)}>🗑️</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <footer className="p-4 border-t border-gray-100 flex items-center justify-between text-xs text-gray-400 font-medium">
+                        <span>Registro de clasificación</span>
+                        <div className="flex gap-2">
+                            <button type="button" className="bg-[#49e619] text-slate-950 font-bold px-3 py-1.5 rounded-lg hover:bg-[#3cd110] transition-colors disabled:opacity-50">Anterior</button>
+                            <span className="bg-[#49e619] text-slate-950 font-bold w-8 h-8 flex items-center justify-center rounded-lg">1</span>
+                            <button type="button" className="bg-[#49e619] text-slate-950 font-bold px-3 py-1.5 rounded-lg hover:bg-[#3cd110] transition-colors disabled:opacity-50">Siguiente</button>
+                        </div>
+                    </footer>
                 </section>
 
                 {/* MODAL DE REGISTRO */}
@@ -223,7 +294,6 @@ export default function ClasificacionView() {
                             </header>
 
                             <form onSubmit={step === 2 ? handleSave : (e) => e.preventDefault()} className="p-6">
-                                {/* PASO 1 */}
                                 {step === 1 && (
                                     <section>
                                         <div className="overflow-x-auto border border-gray-100 rounded-xl mb-4">
@@ -286,7 +356,6 @@ export default function ClasificacionView() {
                                     </section>
                                 )}
 
-                                {/* PASO 2 */}
                                 {step === 2 && (
                                     <section>
                                         <fieldset className="grid grid-cols-2 gap-4 border-none p-0 mb-6">
@@ -328,7 +397,7 @@ export default function ClasificacionView() {
                                                 <button type="button" className="bg-red-50 hover:bg-red-100 text-red-600 font-bold py-2.5 px-4 rounded-xl transition-colors text-sm" onClick={handleLimpiarFormulario}>
                                                     BORRAR TODO
                                                 </button>
-                                                <button type="submit" className="bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-6 rounded-xl transition-colors shadow-md">
+                                                <button type="submit" className="bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 px-6 rounded-xl transition-colors shadow-md">
                                                     FINALIZAR Y GUARDAR
                                                 </button>
                                             </div>
@@ -340,18 +409,17 @@ export default function ClasificacionView() {
                     </div>
                 )}
 
-                {/* MODAL EXITO (GUARDADO) */}
+                {/* MODALES STATUS (EXITO/BORRADO) */}
                 {modals.exito && (
                     <div className="fixed inset-0 bg-slate-950/90 flex items-center justify-center p-4 z-50 animate-fade-in">
                         <article className="text-center text-white max-w-sm flex flex-col items-center">
                             <span className="text-4xl text-green-500 border-4 border-green-500 w-20 h-20 flex items-center justify-center rounded-full font-bold mb-4 animate-bounce">✓</span>
                             <h1 className="text-2xl font-black tracking-wide mb-2">¡REGISTRO EXITOSO!</h1>
-                            <button type="button" className="w-full bg-green-600 text-slate-950 font-black py-3 px-8 rounded-xl mt-6 hover:bg-green-500 transition-colors" onClick={() => closeModal('exito')}>CONTINUAR</button>
+                            <button type="button" className="w-full bg-green-500 text-slate-950 font-black py-3 px-8 rounded-xl mt-6 hover:bg-green-400 transition-colors" onClick={() => closeModal('exito')}>CONTINUAR</button>
                         </article>
                     </div>
                 )}
 
-                {/* MODAL ANUNCIO BORRADO */}
                 {modals.borrado && (
                     <div className="fixed inset-0 bg-slate-950/90 flex items-center justify-center p-4 z-50 animate-fade-in">
                         <article className="text-center text-white max-w-sm flex flex-col items-center">
@@ -363,66 +431,17 @@ export default function ClasificacionView() {
                     </div>
                 )}
 
-                {/* MODAL HISTORIAL */}
-                {modals.historial && (
-                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-                        <article className="bg-white rounded-3xl w-full max-w-3xl overflow-hidden shadow-2xl">
-                            <header className="flex justify-between items-center px-6 py-4 border-b bg-gray-50">
-                                <h2 className="text-lg font-bold text-gray-900">Historial de Registros</h2>
-                                <button className="text-gray-400 hover:text-gray-600 text-2xl" type="button" onClick={() => closeModal('historial')}>&times;</button>
-                            </header>
-                            <div className="p-6 overflow-y-auto max-h-[70vh]">
-                                <div className="overflow-x-auto border rounded-xl">
-                                    <table className="w-full text-left border-collapse text-sm">
-                                        <thead>
-                                            <tr className="bg-slate-50 text-gray-500 border-b font-semibold">
-                                                <th className="p-3">ID</th>
-                                                <th className="p-3">Fecha</th>
-                                                <th className="p-3">Línea</th>
-                                                <th className="p-3">Total</th>
-                                                <th className="p-3">Responsable</th>
-                                                <th className="p-3 text-center">Acciones</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-gray-100">
-                                            {historial.length === 0 ? (
-                                                <tr>
-                                                    <td colSpan="6" className="text-center py-8 text-gray-400">No hay registros almacenados.</td>
-                                                </tr>
-                                            ) : historial.map((reg, index) => (
-                                                <tr key={index} className="hover:bg-slate-50/50">
-                                                    <td className="p-3 font-bold">{reg.id}</td>
-                                                    <td className="p-3">{reg.fecha}</td>
-                                                    <td className="p-3">{reg.linea}</td>
-                                                    <td className="p-3 font-bold text-green-600">{reg.total}</td>
-                                                    <td className="p-3 text-gray-600">{reg.responsable}</td>
-                                                    <td className="p-3 flex justify-center gap-2">
-                                                        <button type="button" className="bg-green-50 hover:bg-green-100 text-green-700 p-2 rounded-lg transition-colors" onClick={() => verDetalle(index)}>👁️</button>
-                                                        <button type="button" className="bg-red-50 hover:bg-red-100 text-red-600 p-2 rounded-lg transition-colors" onClick={() => eliminarRegistro(index)}>🗑️</button>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </article>
-                    </div>
-                )}
-
-                {/* MODAL DETALLE CON DESGLOSE DE TIPOS (B, C, AAA, AA, A) */}
+                {/* MODAL DETALLE */}
                 {modals.detalle && selectedRecordIndex !== null && (
                     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
                         <article className="bg-white rounded-3xl w-full max-w-xl overflow-hidden shadow-2xl">
                             <header className="flex justify-between items-center px-6 py-4 border-b bg-gray-50">
                                 <h2 className="text-lg font-bold text-gray-900">Detalle de Producción</h2>
-                                <div className="flex items-center gap-3">
-                                    <button type="button" className="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold py-1.5 px-4 rounded-lg transition-colors" onClick={handleExportarExcel}>📊 EXCEL</button>
-                                    <button className="text-gray-400 hover:text-gray-600 text-2xl" type="button" onClick={() => closeModal('detalle')}>&times;</button>
-                                </div>
+                                <button className="text-gray-400 hover:text-gray-600 text-2xl" type="button" onClick={() => closeModal('detalle')}>&times;</button>
                             </header>
                             {(() => {
                                 const r = historial[selectedRecordIndex];
+                                if (!r) return null;
                                 return (
                                     <section className="p-6 space-y-5">
                                         <div className="grid grid-cols-2 gap-4 text-sm border-b pb-4">
@@ -433,7 +452,6 @@ export default function ClasificacionView() {
                                             <p className="text-gray-500 font-medium col-span-2">RESPONSABLE: <span className="font-bold text-gray-800 block">{r.responsable}</span></p>
                                         </div>
 
-                                        {/* Desglose estético por Categorías */}
                                         <div>
                                             <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2.5">Producción por Tipo</h3>
                                             <div className="bg-slate-50 border border-gray-100 rounded-2xl p-4 grid grid-cols-5 gap-2 text-center">
@@ -443,7 +461,7 @@ export default function ClasificacionView() {
                                                         <div key={tipo} className="bg-white border border-gray-200/60 rounded-xl p-2 shadow-sm">
                                                             <span className="block text-xs font-black text-slate-400 uppercase">{tipo}</span>
                                                             <span className="block text-lg font-extrabold text-slate-800 mt-0.5">{cantidad}</span>
-                                                            <span className="block text-[10px] text-gray-400 font-medium">pañales</span>
+                                                            <span className="block text-[10px] text-gray-400 font-medium">uds</span>
                                                         </div>
                                                     );
                                                 })}
@@ -461,7 +479,7 @@ export default function ClasificacionView() {
                                             </div>
                                         </div>
 
-                                        <blockquote className="bg-gray-50 border-l-4 border-green-600 p-3 rounded-r-xl text-xs italic text-gray-600">
+                                        <blockquote className="bg-gray-50 border-l-4 border-green-500 p-3 rounded-r-xl text-xs italic text-gray-600">
                                             <strong className="block text-gray-700 not-italic font-bold mb-1 uppercase tracking-wider">Observaciones:</strong>
                                             "{r.obs}"
                                         </blockquote>
@@ -474,4 +492,4 @@ export default function ClasificacionView() {
             </main>
         </div>
     );
-}
+}7

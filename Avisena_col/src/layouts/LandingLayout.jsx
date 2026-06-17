@@ -106,22 +106,7 @@ export default function LandingLayout() {
     {/* BOTONES DERECHA */}
     <section className="flex items-center gap-5">
 
-      <Link
-        to="/register"
-        className="
-          bg-[#49e619]
-          hover:bg-[#3cd110]
-          !text-black
-          !font-extrabold
-          px-6 py-3
-          rounded-3xl
-          shadow-lg
-          transition-all
-          hover:scale-105
-        "
-      >
-        Registrarse
-      </Link>
+      
 
       <Link
         to="/login"
