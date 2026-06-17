@@ -22,6 +22,7 @@ import ReportesFinanzasView from './views/reportes/ReportesFinanzasView';
 import GestionUsuariosView from './views/dashboard/GestionUsuariosView';
 import DashboardProduccion from './views/dashboard/DashboardProduccion';
 import ConfiguracionGeneral from './views/dashboard/ConfiguracionGeneral';
+import AdminGalponesView from './views/galpones/AdminGalponesView';
 
 function App() {
   return (
@@ -47,6 +48,8 @@ function App() {
           <Route path="/registro_clasificacion" element={<RegistroClasificacionView />} />
           <Route path="/notificaciones" element={<NotificacionesView />} />
           <Route path="/users" element={<GestionUsuariosView />} />
+          <Route path="/galpones" element={<AdminGalponesView />} />
+          <Route path="/lotes" element={<AdminGalponesView />} />
           <Route path="/users/register" element={<RegisterUserView />} />
           <Route path="/profile" element={<UserProfileView />} />
           <Route path="/rep_diario" element={<ReportesDiarioView />} />

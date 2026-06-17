@@ -30,8 +30,8 @@ export default function FormMorbilidad({ onSubmit, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex justify-center items-center backdrop-blur-sm p-4 overflow-y-auto">
-      <aside className="w-full max-w-4xl max-h-[90vh] m-auto overflow-y-auto">
-        <section className="bg-white dark:bg-background-dark border border-slate-200 dark:border-primary/10 rounded-xl p-6 shadow-xl relative text-left">
+      <aside className="w-full max-w-2xl max-h-[85vh] m-auto overflow-y-auto">
+        <section className="bg-white dark:bg-background-dark border border-slate-200 dark:border-primary/10 rounded-xl p-4 shadow-xl relative text-left">
           <button
             type="button"
             onClick={onClose}
@@ -40,71 +40,74 @@ export default function FormMorbilidad({ onSubmit, onClose }) {
             <span className="material-icons">close</span>
           </button>
 
-          <section className="flex items-center gap-2 mb-6">
+          <section className="flex items-center gap-2 mb-4">
             <span className="material-icons text-primary">assignment_add</span>
             <h3 className="text-lg font-semibold">Nuevo Registro de Morbilidad</h3>
           </section>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Responsable */}
-            <section className="bg-primary/5 p-3 rounded-lg border border-primary/10">
-              <label className="block text-xs font-bold uppercase text-primary mb-1">Responsable</label>
-              <section className="relative">
+          <form onSubmit={handleSubmit} className="space-y-3">
+            {/* Responsable y Fecha de Reporte */}
+            <section className="grid grid-cols-2 gap-4">
+              <section>
+                <label className="block text-xs font-bold uppercase text-primary mb-1">Responsable</label>
                 <input
                   id="f-responsable"
-                  className="w-full bg-white dark:bg-background-dark border border-slate-200 dark:border-primary/20 rounded-lg focus:ring-primary focus:border-primary dark:text-white pl-10 h-10 border text-sm"
-                  placeholder="Nombre del técnico encargado"
+                  className="w-full bg-white dark:bg-background-dark border border-slate-200 dark:border-primary/20 rounded-lg focus:ring-primary focus:border-primary dark:text-white h-10 px-3 text-sm"
+                  placeholder="Nombre del técnico"
                   required
                   type="text"
                   value={formData.responsable}
                   onChange={(e) => setFormData({ ...formData, responsable: e.target.value })}
                 />
               </section>
-            </section>
 
-            {/* Fecha Reporte y Ubicación */}
-            <section className="grid grid-cols-2 gap-4">
               <section>
-                <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Fecha Reporte</label>
+                <label className="block text-xs font-bold uppercase text-primary mb-1">Fecha de Reporte</label>
                 <input
                   id="f-fecha"
-                  className="w-full bg-slate-50 dark:bg-background-dark border border-slate-200 dark:border-primary/20 rounded-lg focus:ring-primary focus:border-primary dark:text-white transition-all text-sm h-10 px-3 border"
+                  className="w-full bg-white dark:bg-background-dark border border-slate-200 dark:border-primary/20 rounded-lg focus:ring-primary focus:border-primary dark:text-white h-10 px-3 text-sm"
                   required
                   type="date"
                   value={formData.fecha}
                   onChange={(e) => setFormData({ ...formData, fecha: e.target.value })}
                 />
               </section>
-              <section className="flex flex-col">
-                <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Ubicación</label>
-                <section className="grid grid-cols-2 gap-2">
-                  <select
-                    id="galpon"
-                    className="w-full bg-slate-50 dark:bg-background-dark border border-slate-200 dark:border-primary/20 rounded-lg focus:ring-primary focus:border-primary dark:text-white text-sm h-10 px-3 border"
-                    required
-                    value={formData.galpon}
-                    onChange={(e) => setFormData({ ...formData, galpon: e.target.value })}
-                  >
-                    <option value="">Galpón...</option>
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                  </select>
-                  <select
-                    id="lote"
-                    className="w-full bg-slate-50 dark:bg-background-dark border border-slate-200 dark:border-primary/20 rounded-lg focus:ring-primary focus:border-primary dark:text-white text-sm h-10 px-3 border"
-                    required
-                    value={formData.lote}
-                    onChange={(e) => setFormData({ ...formData, lote: e.target.value })}
-                  >
-                    <option value="">Lote...</option>
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                  </select>
-                </section>
+            </section>
+
+            {/* Galpón y Lote */}
+            <section className="grid grid-cols-2 gap-4">
+              <section>
+                <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Galpón</label>
+                <select
+                  id="galpon"
+                  className="w-full bg-white dark:bg-background-dark border border-slate-200 dark:border-primary/20 rounded-lg focus:ring-primary focus:border-primary dark:text-white text-sm h-10 px-3"
+                  required
+                  value={formData.galpon}
+                  onChange={(e) => setFormData({ ...formData, galpon: e.target.value })}
+                >
+                  <option value="">Seleccionar galpón...</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                </select>
+              </section>
+
+              <section>
+                <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Lote</label>
+                <select
+                  id="lote"
+                  className="w-full bg-white dark:bg-background-dark border border-slate-200 dark:border-primary/20 rounded-lg focus:ring-primary focus:border-primary dark:text-white text-sm h-10 px-3"
+                  required
+                  value={formData.lote}
+                  onChange={(e) => setFormData({ ...formData, lote: e.target.value })}
+                >
+                  <option value="">Seleccionar lote...</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                </select>
               </section>
             </section>
 
@@ -113,7 +116,7 @@ export default function FormMorbilidad({ onSubmit, onClose }) {
               <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Síntomas / Causas Probables</label>
               <select
                 id="f-sintomas"
-                className="w-full bg-slate-50 dark:bg-background-dark border border-slate-200 dark:border-primary/20 rounded-lg focus:ring-primary focus:border-primary dark:text-white text-sm min-h-[160px] p-3 border"
+                className="w-full bg-white dark:bg-background-dark border border-slate-200 dark:border-primary/20 rounded-lg focus:ring-primary focus:border-primary dark:text-white text-sm min-h-[120px] p-3"
                 multiple
                 required
                 value={formData.sintomas}
@@ -134,7 +137,7 @@ export default function FormMorbilidad({ onSubmit, onClose }) {
                 <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Grado de Afectación</label>
                 <select
                   id="f-afectacion"
-                  className="w-full bg-slate-50 dark:bg-background-dark border border-slate-200 dark:border-primary/20 rounded-lg focus:ring-primary focus:border-primary dark:text-white text-sm h-10 px-3 border"
+                  className="w-full bg-white dark:bg-background-dark border border-slate-200 dark:border-primary/20 rounded-lg focus:ring-primary focus:border-primary dark:text-white text-sm h-10 px-3"
                   required
                   value={formData.afectacion}
                   onChange={(e) => setFormData({ ...formData, afectacion: e.target.value })}
@@ -148,7 +151,7 @@ export default function FormMorbilidad({ onSubmit, onClose }) {
                 <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Aves Afectadas</label>
                 <input
                   id="f-cantidad"
-                  className="w-full bg-slate-50 dark:bg-background-dark border border-slate-200 dark:border-primary/20 rounded-lg focus:ring-primary focus:border-primary dark:text-white text-sm h-10 px-3 border"
+                  className="w-full bg-white dark:bg-background-dark border border-slate-200 dark:border-primary/20 rounded-lg focus:ring-primary focus:border-primary dark:text-white text-sm h-10 px-3"
                   placeholder="Cantidad"
                   type="number"
                   required
@@ -164,7 +167,7 @@ export default function FormMorbilidad({ onSubmit, onClose }) {
               <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Acción Inmediata</label>
               <select
                 id="f-accion"
-                className="w-full bg-slate-50 dark:bg-background-dark border border-slate-200 dark:border-primary/20 rounded-lg focus:ring-primary focus:border-primary dark:text-white text-sm h-10 px-3 border"
+                className="w-full bg-white dark:bg-background-dark border border-slate-200 dark:border-primary/20 rounded-lg focus:ring-primary focus:border-primary dark:text-white text-sm h-10 px-3"
                 required
                 value={formData.accion}
                 onChange={(e) => setFormData({ ...formData, accion: e.target.value })}
@@ -182,16 +185,16 @@ export default function FormMorbilidad({ onSubmit, onClose }) {
               <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Observaciones Técnicas</label>
               <textarea
                 id="f-observaciones"
-                className="w-full bg-slate-50 dark:bg-background-dark border border-slate-200 dark:border-primary/20 rounded-lg focus:ring-primary focus:border-primary dark:text-white text-sm resize-none p-3 border"
+                className="w-full bg-white dark:bg-background-dark border border-slate-200 dark:border-primary/20 rounded-lg focus:ring-primary focus:border-primary dark:text-white text-sm resize-none p-3"
                 placeholder="Detalles adicionales observados..."
-                rows="4"
+                rows="3"
                 value={formData.observaciones}
                 onChange={(e) => setFormData({ ...formData, observaciones: e.target.value })}
               ></textarea>
             </section>
 
             <button
-              className="w-full bg-primary hover:bg-[#3dbd14] text-black font-black py-4 px-6 rounded-lg transition-all flex justify-center items-center gap-2 shadow-lg shadow-primary/20 active:scale-[0.98] border-none cursor-pointer text-base min-h-[56px]"
+              className="w-full bg-primary hover:bg-[#3dbd14] text-black font-black py-3 px-4 rounded-lg transition-all flex justify-center items-center gap-2 shadow-lg shadow-primary/20 active:scale-[0.98] border-none cursor-pointer text-sm min-h-[48px]"
               type="submit"
             >
               <span className="material-icons text-sm">save</span>

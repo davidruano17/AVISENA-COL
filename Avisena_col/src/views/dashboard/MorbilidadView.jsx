@@ -32,6 +32,7 @@ export default function MorbilidadView() {
     const loteFull = `Galpón ${formDataSubmit.galpon} - Lote ${formDataSubmit.lote}`;
 
     const nuevoRegistro = {
+      id: Date.now(),
       responsable: formDataSubmit.responsable,
       fecha: formDataSubmit.fecha,
       lote: loteFull,
@@ -48,6 +49,13 @@ export default function MorbilidadView() {
 
     showNotification('¡Registro Exitoso!', 'La incidencia de morbilidad ha sido documentada.');
     setShowModal(false);
+  };
+
+  const eliminarRegistro = (registroId) => {
+    const nuevosRegistros = registros.filter((registro) => registro.id !== registroId);
+    localStorage.setItem('historialMorbilidad', JSON.stringify(nuevosRegistros));
+    setRegistros(nuevosRegistros);
+    showNotification('Registro eliminado', 'El registro de morbilidad fue borrado correctamente.');
   };
 
   const getBadgeColor = (afectacion) => {
@@ -117,7 +125,7 @@ export default function MorbilidadView() {
 
   return (
     <section className="flex h-full grow flex-col">
-      <main className="flex flex-1 flex-col py-8 px-4 md:px-10 lg:px-20 xl:px-40 w-full">
+      <main className="flex flex-1 flex-col py-8 px-6 md:px-8 lg:px-12 w-full">
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8 justify-between">
           <section className="lg:col-span-2 text-left">
             <h2 className="text-3xl font-bold mb-2">Registro de Morbilidad y Causas</h2>
