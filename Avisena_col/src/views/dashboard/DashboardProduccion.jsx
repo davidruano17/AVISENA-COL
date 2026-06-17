@@ -214,25 +214,19 @@ const DashboardProduccion = () => {
   return (
     <main className="flex min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100">
       <section className="flex-1 p-6 max-w-[1600px] mx-auto w-full">
-        <header className="flex flex-wrap items-center justify-between gap-4 mb-6 text-xs font-semibold text-slate-500">
-          <section className="flex items-center gap-3" aria-label="Estado de la fecha"></section>
-
-          <section className="bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-200 flex items-center gap-2">
-            <span className="material-symbols-outlined text-emerald-500">today</span>
-            <span className="text-xs font-bold text-slate-700 uppercase tracking-tight">
-              {obtenerFechaFormateada()}
-            </span>
-          </section>
-        </header>
-
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-          <h1 className="text-xl md:text-2xl font-bold text-slate-900">
-            Registro de Producción
-          </h1>
+          <section className="flex flex-col gap-1">
+                <h1 className="text-3xl font-bold mb-2">
+                  Registro de Producción Avícola
+                </h1>
+                <p className="text-slate-500 text-lg">
+                 Lleva un control detallado de la produccion diaria y monitorea el porcentaje de produccion y productividad de tus lotes. 
+                </p>
+              </section>
 
           <button
             onClick={() => setIsModalRecoleccionOpen(true)}
-            className="bg-[#4CAF50] hover:bg-[#43a047] text-white px-5 py-2 rounded-xl font-bold shadow-xl transition-all flex items-center gap-2"
+            className="bg-primary hover:bg-[#3dbd14]  text-white px-5 py-2 rounded-xl font-bold shadow-xl transition-all flex items-center gap-2"
           >
             <span className="material-symbols-outlined text-base">add_circle</span>
             Nueva Recolección
@@ -293,7 +287,7 @@ const DashboardProduccion = () => {
           <section className="lg:col-span-2 space-y-8">
             <article className="bg-white p-6 rounded-2xl shadow-md border border-slate-200">
               <header className="flex justify-between items-center mb-6">
-                <h3 className="text-[#0c2317] dark:text-white font-bold flex items-center gap-2">
+                <h3 className="text-[#3dbd14] dark:text-white font-bold flex items-center gap-2">
                   <span className="material-symbols-outlined text-[#2ea66d] font-bold">
                     trending_up
                   </span>
@@ -397,7 +391,7 @@ const DashboardProduccion = () => {
           </section>
 
           <aside className="space-y-8">
-            <aside className="bg-[#4CAF50] text-white p-5 rounded-2xl shadow-lg shadow-primary/20 flex flex-col justify-between min-h-[170px]">
+            <aside className="bg-primary hover:bg-[#3dbd14]  text-white p-5 rounded-2xl shadow-lg shadow-primary/20 flex flex-col justify-between min-h-[170px]">
               <header className="flex items-center gap-2 mb-4">
                 <span className="material-symbols-outlined text-lg">grid_on</span>
                 <h4 className="font-bold text-sm uppercase tracking-wider text-white/95">
@@ -491,7 +485,7 @@ const DashboardProduccion = () => {
 
                     <button
                       onClick={() => setIsModalAlimentoOpen(true)}
-                      className="bg-[#2ea66d] text-white text-xs font-bold px-4 py-3 rounded-xl hover:bg-[#278d5c] transition-all cursor-pointer shadow-sm border-none whitespace-nowrap"
+                      className="bg-[#3dbd14] text-white text-xs font-bold px-4 py-3 rounded-xl hover:bg-[#278d5c] transition-all cursor-pointer shadow-sm border-none whitespace-nowrap"
                     >
                       Suministrar
                     </button>
@@ -502,64 +496,7 @@ const DashboardProduccion = () => {
           </aside>
         </section>
 
-        <section className="mb-8">
-          <article className="bg-white dark:bg-zinc-900 p-6 rounded-3xl shadow-sm border border-slate-100/80 dark:border-zinc-800/80">
-            <header className="flex justify-between items-center mb-6 pb-2 border-b border-slate-50 dark:border-zinc-850">
-              <div>
-                <h3 className="text-lg font-bold flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[#2ea66d] font-bold">
-                    category
-                  </span>
-                  Clasificación de Huevos
-                </h3>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  Producción clasificada con equivalencia a panales
-                </p>
-              </div>
-
-              <button
-                onClick={() => setIsModalClasifOpen(true)}
-                className="bg-[#2ea66d]/10 hover:bg-[#2ea66d]/20 text-[#2ea66d] text-xs font-bold px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer border border-[#2ea66d]/5"
-              >
-                <span className="material-symbols-outlined text-sm font-bold">add</span>
-                Agregar reg. Clasif.
-              </button>
-            </header>
-
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-              {Object.entries(clasificacionData).map(([key, val]) => {
-                const label = key === "rotos" ? "Rotos / Dañados" : `Huevo Tipo ${key.toUpperCase()}`;
-                const color = key === "rotos" ? "bg-amber-500" : "bg-[#2ea66d]";
-                const panales = (Number(val.hoy) / 30).toFixed(1);
-
-                return (
-                  <div
-                    key={key}
-                    className="flex flex-col space-y-2 bg-slate-50/50 dark:bg-zinc-950/20 p-4 rounded-2xl border border-slate-100/50 dark:border-zinc-800/80"
-                  >
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                      {label}
-                    </span>
-                    <div className="flex justify-between items-end">
-                      <span className="text-xl font-black text-slate-800 dark:text-white leading-none">
-                        {val.hoy} <span className="text-xs font-normal text-slate-500">uds</span>
-                      </span>
-                      <span className="text-xs font-bold text-[#2ea66d] bg-[#e8f7f0] dark:bg-emerald-950/20 px-2 py-0.5 rounded">
-                        {panales} panales
-                      </span>
-                    </div>
-                    <div className="w-full bg-slate-100 dark:bg-zinc-800/50 h-2 rounded-full overflow-hidden mt-1">
-                      <div
-                        className={`${color} h-full rounded-full transition-all duration-500`}
-                        style={{ width: `${Math.min((Number(val.hoy) / 500) * 100, 100)}%` }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </article>
-        </section>
+        
 
         <article className="bg-white dark:bg-zinc-900 p-6 rounded-3xl shadow-sm border border-slate-100/80 dark:border-zinc-800/80 mb-8">
           <header className="flex justify-between items-center mb-8">
@@ -734,7 +671,7 @@ const DashboardProduccion = () => {
               <div className="flex gap-4 pt-4 border-t border-slate-50 dark:border-zinc-800">
                 <button
                   type="submit"
-                  className="flex-1 bg-[#2ea66d] text-white font-bold py-3 rounded-xl hover:bg-[#278d5c] transition-all cursor-pointer text-center text-sm shadow-sm border-none"
+                  className="flex-1 bg-[#3dbd14] text-white font-bold py-3 rounded-xl hover:bg-[#278d5c] transition-all cursor-pointer text-center text-sm shadow-sm border-none"
                 >
                   Guardar Registro
                 </button>

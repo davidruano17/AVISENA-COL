@@ -26,7 +26,7 @@ export default function GestionUsuariosView() {
           <main className="w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <section className="flex flex-wrap justify-between items-end gap-4 mb-8">
               <section className="flex flex-col gap-1">
-                <h1 className="text-slate-900 dark:text-white text-5xl font-black leading-tight tracking-tight">Gestión de Usuarios</h1>
+                <h1 className="text-slate-900 dark:text-white text-3xl font-bold leading-tight tracking-tight">Gestión de Usuarios</h1>
                 <p className="text-slate-500 dark:text-slate-400 text-lg font-normal">
                   Administra el acceso al sistema, los roles y los datos del
                   personal encargado de las operaciones avícolas
@@ -101,16 +101,7 @@ export default function GestionUsuariosView() {
               </section>
             </section>
           </main>
-          <footer className="mt-auto px-10 py-6 text-center border-t border-slate-200 dark:border-slate-800">
-            <section className="flex flex-col items-center gap-4">
-              <section className="flex items-center gap-6 opacity-60">
-                <section className="flex flex-col items-center">
-                  <span className="text-l">Sistema de Gestión Avicola</span>
-                </section>
-              </section>
-              <p className="text-l text-slate-500">© 2026 AVISENA COL</p>
-            </section>
-          </footer>
+          
         </section>
       </section>
     </>

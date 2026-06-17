@@ -104,7 +104,7 @@ export default function Home() { // Cambiado a Home para que actúe como página
         <div style={styles.header}>
           <div style={styles.headerText}>
             <h1 style={styles.title}>Centro de Notificaciones</h1>
-            <p style={styles.subtitle}>Sincronizado en tiempo real con Galpones A-1 al B-4.</p>
+            <p className="text-slate-500 dark:text-slate-400 text-lg font-normal">Sincronizado en tiempo real con Galpones A-1 al B-4.</p>
           </div>
           
           <div style={styles.btnGroup}>
