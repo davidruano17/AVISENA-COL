@@ -41,13 +41,18 @@ const ModalHistorial = ({ isOpen, onClose, historial = [], onExport, onDeleteIte
         </header>
 
         <section className="overflow-x-auto max-h-[70vh] overflow-y-auto">
-          <table className="w-full text-left">
+          <table className="w-full text-left min-w-[900px]">
             <thead className="bg-[#fcfdfd] dark:bg-zinc-900 text-slate-400 text-[10px] font-extrabold uppercase tracking-widest border-b border-slate-50 dark:border-zinc-800">
               <tr>
-                <th className="px-6 py-4">Fecha / Edad</th>
+                <th className="px-6 py-4">Fecha</th>
                 <th className="px-6 py-4">Galpón</th>
-                <th className="px-6 py-4 text-center">Huevos</th>
-                <th className="px-6 py-4 text-center">Alimento (KG)</th>
+                <th className="px-6 py-4">Lote</th>
+                <th className="px-6 py-4">Línea</th>
+                <th className="px-6 py-4">Edad</th>
+                <th className="px-6 py-4">Buenos</th>
+                <th className="px-6 py-4">Rotos</th>
+                <th className="px-6 py-4">Descarte</th>
+                <th className="px-6 py-4">Trabajador</th>
                 <th className="px-6 py-4 text-right">Acciones</th>
               </tr>
             </thead>
@@ -55,13 +60,15 @@ const ModalHistorial = ({ isOpen, onClose, historial = [], onExport, onDeleteIte
             <tbody className="divide-y divide-slate-50 dark:divide-zinc-800/50">
               {historial.map((item, idx) => (
                 <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-zinc-800/20 transition-colors">
-                  <td className="px-6 py-4">
-                    <p className="font-extrabold text-sm text-slate-800 dark:text-slate-200">{item.fecha}</p>
-                    <p className="text-xs text-slate-400 mt-0.5">{item.edad}</p>
-                  </td>
+                  <td className="px-6 py-4 text-sm font-semibold text-slate-800 dark:text-slate-200">{item.fecha}</td>
                   <td className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400">{item.galpon}</td>
-                  <td className="px-6 py-4 text-center text-sm font-black text-slate-800 dark:text-slate-200">{item.huevos.toLocaleString()}</td>
-                  <td className="px-6 py-4 text-center text-sm font-medium text-slate-500 dark:text-slate-400">{item.alimento.toFixed(1)}</td>
+                  <td className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400">{item.lote || "-"}</td>
+                  <td className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400">{item.lineaGenetica || "-"}</td>
+                  <td className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400">{item.edad}</td>
+                  <td className="px-6 py-4 text-center text-sm font-black text-slate-800 dark:text-slate-200">{item.huevosBuenos?.toLocaleString?.() ?? item.huevos?.toLocaleString?.() ?? 0}</td>
+                  <td className="px-6 py-4 text-center text-sm font-black text-slate-800 dark:text-slate-200">{item.huevosRotos?.toLocaleString?.() ?? 0}</td>
+                  <td className="px-6 py-4 text-center text-sm font-semibold text-slate-500 dark:text-slate-400">{item.descarte || "-"}</td>
+                  <td className="px-6 py-4 text-sm font-semibold text-slate-500 dark:text-slate-400">{item.trabajador || "-"}</td>
                   <td className="px-6 py-4 text-right flex items-center justify-end gap-2">
                     <button
                       onClick={() => onDeleteItem && onDeleteItem(idx)}
