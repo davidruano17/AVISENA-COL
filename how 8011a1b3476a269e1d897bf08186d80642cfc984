@@ -1,0 +1,11 @@
+[33mcommit 8011a1b3476a269e1d897bf08186d80642cfc984[m
+Merge: 6348bca 58462e1
+Author: JobGonzalez2 <gjob1544@gmail.com>
+Date:   Sun Jul 5 23:19:08 2026 -0500
+
+    WIP on nueva_rama_desarrollo: 6348bca Merge pull request #1 from davidruano17/andres_tulandi
+
+ Avisena_col/src/components/ModalHistorial.jsx      |   55 [32m+[m[31m-[m
+ .../src/views/dashboard/DashboardProduccion.jsx    |  688 [32m+++++[m[31m-----[m
+ .../views/dashboard/RegistroClasificacionView.jsx  | 1390 [32m+++++++++++++[m[31m-------[m
+ 3 files changed, 1311 insertions(+), 822 deletions(-)

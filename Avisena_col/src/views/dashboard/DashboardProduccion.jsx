@@ -1,4 +1,5 @@
 ﻿import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import ModalHistorial from "../../components/ModalHistorial";
 
 const DashboardProduccion = () => {
@@ -23,7 +24,6 @@ const DashboardProduccion = () => {
 
   // Modales
   const [isModalRecoleccionOpen, setIsModalRecoleccionOpen] = useState(false);
-  const [isModalClasifOpen, setIsModalClasifOpen] = useState(false);
   const [isModalAlimentoOpen, setIsModalAlimentoOpen] = useState(false);
   const [isHistorialOpen, setIsHistorialOpen] = useState(false);
 
@@ -40,14 +40,7 @@ const DashboardProduccion = () => {
   const [lineaGenetica, setLineaGenetica] = useState("");
 
   const [produccionesPendientes, setProduccionesPendientes] = useState([]);
-  const [produccionSeleccionada, setProduccionSeleccionada] = useState(null);
   const [produccionEnEdicion, setProduccionEnEdicion] = useState(null);
-
-  // Formulario Clasificación
-  const [fechaClasif, setFechaClasif] = useState("2026-05-28");
-  const [galponClasif, setGalponClasif] = useState("Galpón A - Ponedoras");
-  const [lineaClasif, setLineaClasif] = useState("Hy-Line Brown");
-  const [edadSemanasClasif, setEdadSemanasClasif] = useState("22");
 
   const [clasificacionData, setClasificacionData] = useState({
     aaa: { hoy: 420, ayer: 400, acumulado: 820, precioUsd: 0.18 },
@@ -58,8 +51,20 @@ const DashboardProduccion = () => {
   });
 
   const [historial, setHistorial] = useState([
-    { fecha: "24 oct, 2023", edad: "22 Semanas", galpon: "Galpón A", huevos: 420, alimento: 45.5 },
-    { fecha: "24 oct, 2023", edad: "22 Semanas", galpon: "Galpón B", huevos: 380, alimento: 40.2 },
+    {
+      fecha: "24 oct, 2023",
+      edad: "22 Semanas",
+      galpon: "Galpón A",
+      huevos: 420,
+      alimento: 45.5,
+    },
+    {
+      fecha: "24 oct, 2023",
+      edad: "22 Semanas",
+      galpon: "Galpón B",
+      huevos: 380,
+      alimento: 40.2,
+    },
   ]);
 
   const [alimentoConsumido, setAlimentoConsumido] = useState(110.0);
@@ -71,85 +76,63 @@ const DashboardProduccion = () => {
 
   const totalHuevos = Object.values(clasificacionData).reduce(
     (sum, item) => sum + Number(item.hoy || 0),
-    0
+    0,
   );
 
   const reqAlimentoKg = (Number(nroAves || 0) * Number(gAve || 0)) / 1000;
   const bultosRequeridos = reqAlimentoKg / 50;
-  const previewBultos = alimentoInput ? (parseFloat(alimentoInput) / 50).toFixed(1) : "0.0";
+  const previewBultos = alimentoInput
+    ? (parseFloat(alimentoInput) / 50).toFixed(1)
+    : "0.0";
 
   const cubetas = Math.floor(totalHuevos / 30);
   const sueltos = totalHuevos % 30;
   const fcrScore =
-    totalHuevos > 0 ? (alimentoConsumido / (totalHuevos / 12)).toFixed(1) : "0.0";
-
-  const handleClasifValueChange = (key, field, val) => {
-    setClasificacionData((prev) => ({
-      ...prev,
-      [key]: {
-        ...prev[key],
-        [field]: val,
-      },
-    }));
-  };
+    totalHuevos > 0
+      ? (alimentoConsumido / (totalHuevos / 12)).toFixed(1)
+      : "0.0";
 
   const handleRecoleccionSubmit = (e) => {
     e.preventDefault();
 
-    const huevosB = Number(huevosBuenos || 0);
-    const huevosR = Number(huevosRotosInput || 0);
-    const nuevosHuevos = huevosB + huevosR;
+    const produccion = {
+      fecha: fechaRecoleccion,
+      galpon: galponOrigen,
+      lote,
+      lineaGenetica,
+      edadSemanas: edadSemanasRecoleccion,
+      trabajador: nombreTrabajador,
+      huevosBuenos: Number(huevosBuenos),
+      huevosRotos: Number(huevosRotosInput),
+      descarte,
+      notas,
+      clasificado: false,
+    };
 
-    if (nuevosHuevos > 0) {
-      const produccionNueva = {
-        id: Date.now(),
-        fecha: fechaRecoleccion,
-        galpon: galponOrigen,
-        lote,
-        lineaGenetica,
-        edadSemanas: edadSemanasRecoleccion,
-        trabajador: nombreTrabajador,
-        huevosBuenos: huevosB,
-        huevosRotos: huevosR,
-        descarte,
-        notas,
-        clasificado: false,
-      };
-
-      if (produccionEnEdicion) {
-        setProduccionesPendientes((prev) =>
-          prev.map((item) =>
-            item.id === produccionEnEdicion.id ? { ...item, ...produccionNueva, id: produccionEnEdicion.id } : item
-          )
-        );
-        setProduccionEnEdicion(null);
-      } else {
-        setProduccionesPendientes((prev) => [produccionNueva, ...prev]);
-      }
+    if (produccionEnEdicion) {
+      setProduccionesPendientes((prev) =>
+        prev.map((item) =>
+          item.id === produccionEnEdicion.id
+            ? {
+                ...item,
+                ...produccion,
+              }
+            : item,
+        ),
+      );
+      setProduccionEnEdicion(null);
+    } else {
+      setProduccionesPendientes((prev) => [
+        {
+          id: Date.now(),
+          ...produccion,
+        },
+        ...prev,
+      ]);
     }
 
+    handleLimpiarFormulario();
     setIsModalRecoleccionOpen(false);
-  };
-
-  const abrirClasificacion = (produccion) => {
-    setProduccionSeleccionada(produccion);
-    setFechaClasif(produccion.fecha);
-    setGalponClasif(produccion.galpon);
-    setEdadSemanasClasif(produccion.edadSemanas);
-    setLineaClasif(produccion.lineaGenetica);
-    setClasificacionData({
-      aaa: { hoy: 0, ayer: 0, acumulado: 0, precioUsd: 0.18 },
-      aa: { hoy: 0, ayer: 0, acumulado: 0, precioUsd: 0.15 },
-      a: { hoy: 0, ayer: 0, acumulado: 0, precioUsd: 0.12 },
-      b: { hoy: 0, ayer: 0, acumulado: 0, precioUsd: 0.09 },
-      rotos: {
-        hoy: produccion.huevosRotos,
-        ayer: 0,
-        acumulado: produccion.huevosRotos,
-        precioUsd: 0,
-      },
-    });
-    setIsModalClasifOpen(true);
   };
 
   const abrirEdicionProduccion = (produccion) => {
@@ -181,45 +164,9 @@ const DashboardProduccion = () => {
     setProduccionEnEdicion(null);
   };
 
-  const handleClasifSubmit = (e) => {
-    e.preventDefault();
-
-    const nuevosHuevos = Object.values(clasificacionData).reduce(
-      (sum, item) => sum + Number(item.hoy || 0),
-      0
-    );
-
-    if (nuevosHuevos > 0) {
-      const newEntry = {
-        fecha: fechaClasif,
-        edad: `${edadSemanasClasif} Semanas`,
-        galpon: galponClasif,
-        lote: produccionSeleccionada?.lote || "",
-        lineaGenetica: lineaClasif,
-        trabajador: produccionSeleccionada?.trabajador || "",
-        huevosBuenos: Number(produccionSeleccionada?.huevosBuenos || 0),
-        huevosRotos: Number(produccionSeleccionada?.huevosRotos || 0),
-        descarte: produccionSeleccionada?.descarte || "0",
-        notas: produccionSeleccionada?.notas || "",
-        huevos: nuevosHuevos,
-        alimento: 45.0,
-        clasificacion: {
-          aaa: Number(clasificacionData.aaa.hoy || 0),
-          aa: Number(clasificacionData.aa.hoy || 0),
-          a: Number(clasificacionData.a.hoy || 0),
-          b: Number(clasificacionData.b.hoy || 0),
-          rotos: Number(clasificacionData.rotos.hoy || 0),
-        },
-      };
-
-      setHistorial((prev) => [newEntry, ...prev]);
-      if (produccionSeleccionada) {
-        setProduccionesPendientes((prev) => prev.filter((item) => item.id !== produccionSeleccionada.id));
-      }
-      setProduccionSeleccionada(null);
-    }
-
-    setIsModalClasifOpen(false);
+  const clasificarProduccion = (produccion) => {
+    localStorage.setItem("produccionSeleccionada", JSON.stringify(produccion));
+    window.location.href = "/registro_clasificacion";
   };
 
   const handleAlimentoSubmit = (e) => {
@@ -235,12 +182,12 @@ const DashboardProduccion = () => {
   };
 
   useEffect(() => {
-    if (isModalRecoleccionOpen || isModalClasifOpen || isModalAlimentoOpen || isHistorialOpen) {
+    if (isModalRecoleccionOpen || isModalAlimentoOpen || isHistorialOpen) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "auto";
     }
-  }, [isModalRecoleccionOpen, isModalClasifOpen, isModalAlimentoOpen, isHistorialOpen]);
+  }, [isModalRecoleccionOpen, isModalAlimentoOpen, isHistorialOpen]);
 
   // Exportar historial a CSV
   const handleExportHistorial = () => {
@@ -277,13 +224,15 @@ const DashboardProduccion = () => {
     ]);
     const csv = [
       headers.join(","),
-      ...rows.map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")),
+      ...rows.map((r) =>
+        r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","),
+      ),
     ].join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `historial_${new Date().toISOString().slice(0,10)}.csv`;
+    a.download = `historial_${new Date().toISOString().slice(0, 10)}.csv`;
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -295,7 +244,11 @@ const DashboardProduccion = () => {
   };
 
   const handleClearHistorial = () => {
-    if (window.confirm("¿Borrar todo el historial? Esta acción no se puede deshacer.")) {
+    if (
+      window.confirm(
+        "¿Borrar todo el historial? Esta acción no se puede deshacer.",
+      )
+    ) {
       setHistorial([]);
     }
   };
@@ -317,19 +270,22 @@ const DashboardProduccion = () => {
       <section className="flex-1 p-6 max-w-[1600px] mx-auto w-full">
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <section className="flex flex-col gap-1">
-                <h1 className="text-3xl font-bold mb-2">
-                  Registro de Producción Avícola
-                </h1>
-                <p className="text-slate-500 text-lg">
-                 Lleva un control detallado de la produccion diaria y monitorea el porcentaje de produccion y productividad de tus lotes. 
-                </p>
-              </section>
+            <h1 className="text-3xl font-bold mb-2">
+              Registro de Producción de huevos
+            </h1>
+            <p className="text-slate-500 text-lg">
+              Lleva un control detallado de la produccion diaria y monitorea el
+              porcentaje de produccion y productividad de tus lotes.
+            </p>
+          </section>
 
           <button
             onClick={() => setIsModalRecoleccionOpen(true)}
             className="bg-primary hover:bg-[#3dbd14]  text-white px-5 py-2 rounded-xl font-bold shadow-xl transition-all flex items-center gap-2"
           >
-            <span className="material-symbols-outlined text-base">add_circle</span>
+            <span className="material-symbols-outlined text-base">
+              add_circle
+            </span>
             Nueva Recolección
           </button>
         </header>
@@ -337,7 +293,9 @@ const DashboardProduccion = () => {
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <article className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-zinc-800/80 flex items-center justify-between">
             <section className="space-y-1">
-              <p className="text-slate-400 text-sm font-medium">Total Huevos Hoy</p>
+              <p className="text-slate-400 text-sm font-medium">
+                Total Huevos Hoy
+              </p>
               <h3 className="text-3xl font-black text-slate-800 dark:text-white leading-tight">
                 {totalHuevos.toLocaleString()}
               </h3>
@@ -349,7 +307,9 @@ const DashboardProduccion = () => {
 
           <article className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-zinc-800/80 flex items-center justify-between">
             <section className="space-y-1">
-              <p className="text-slate-400 text-sm font-medium">Edad de las Aves</p>
+              <p className="text-slate-400 text-sm font-medium">
+                Edad de las Aves
+              </p>
               <h3 className="text-2xl font-black text-slate-800 dark:text-white leading-tight">
                 {edadSemanasRecoleccion} Semanas
               </h3>
@@ -361,7 +321,9 @@ const DashboardProduccion = () => {
 
           <article className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-zinc-800/80 flex items-center justify-between">
             <section className="space-y-1">
-              <p className="text-slate-400 text-sm font-medium">Total Recolecciones Hoy</p>
+              <p className="text-slate-400 text-sm font-medium">
+                Total Recolecciones Hoy
+              </p>
               <h3 className="text-3xl font-black text-[#2ea66d] leading-tight">
                 {historial.length + 1}
               </h3>
@@ -373,9 +335,11 @@ const DashboardProduccion = () => {
 
           <article className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-zinc-800/80 flex items-center justify-between">
             <section className="space-y-1">
-              <p className="text-slate-400 text-sm font-medium">Galpón Monitoreado</p>
+              <p className="text-slate-400 text-sm font-medium">
+                Galpón Monitoreado
+              </p>
               <h3 className="text-lg font-bold text-slate-800 dark:text-white leading-tight truncate max-w-[140px]">
-                {galponClasif}
+                {galponOrigen}
               </h3>
             </section>
             <span className="bg-[#2ea66d]/10 text-[#2ea66d] p-3 rounded-lg material-symbols-outlined font-bold">
@@ -436,11 +400,18 @@ const DashboardProduccion = () => {
             <article className="bg-white dark:bg-zinc-900 rounded-3xl shadow-sm border border-slate-100/80 dark:border-zinc-800/80 overflow-hidden">
               <header className="p-6 border-b border-slate-50 dark:border-zinc-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div>
-                  <h3 className="text-slate-800 dark:text-white font-bold">Producciones Pendientes</h3>
-                  <p className="text-slate-500 text-xs mt-1">Registros creados en Producción que aún no se han clasificado.</p>
+                  <h3 className="text-slate-800 dark:text-white font-bold">
+                    Producciones Pendientes
+                  </h3>
+                  <p className="text-slate-500 text-xs mt-1">
+                    Registros creados en Producción que aún no se han
+                    clasificado.
+                  </p>
                 </div>
                 <div className="flex items-center gap-4">
-                  <span className="text-slate-500 text-xs font-bold">{produccionesPendientes.length} pendientes</span>
+                  <span className="text-slate-500 text-xs font-bold">
+                    {produccionesPendientes.length} pendientes
+                  </span>
                   <button
                     onClick={() => setIsHistorialOpen(true)}
                     className="text-[#2ea66d] text-xs font-bold hover:underline bg-transparent border-none cursor-pointer"
@@ -470,38 +441,66 @@ const DashboardProduccion = () => {
                   <tbody className="divide-y divide-slate-50 dark:divide-zinc-800/50">
                     {produccionesPendientes.length > 0 ? (
                       produccionesPendientes.slice(0, 5).map((item) => (
-                        <tr key={item.id} className="hover:bg-slate-50/50 dark:hover:bg-zinc-800/20 transition-colors">
-                          <td className="px-4 py-4 text-sm font-semibold text-slate-600 dark:text-slate-300">{item.fecha}</td>
-                          <td className="px-4 py-4 text-sm font-semibold text-slate-600 dark:text-slate-300">{item.galpon}</td>
-                          <td className="px-4 py-4 text-sm font-semibold text-slate-600 dark:text-slate-300">{item.lote || "-"}</td>
-                          <td className="px-4 py-4 text-sm font-semibold text-slate-600 dark:text-slate-300">{item.lineaGenetica || "-"}</td>
-                          <td className="px-4 py-4 text-sm font-semibold text-slate-600 dark:text-slate-300">{item.edadSemanas} Semanas</td>
-                          <td className="px-4 py-4 text-sm font-bold text-slate-800 dark:text-slate-100">{item.huevosBuenos}</td>
-                          <td className="px-4 py-4 text-sm font-bold text-slate-800 dark:text-slate-100">{item.huevosRotos}</td>
-                          <td className="px-4 py-4 text-sm font-semibold text-slate-600 dark:text-slate-300">{item.descarte}</td>
-                          <td className="px-4 py-4 text-sm font-semibold text-slate-600 dark:text-slate-300">{item.trabajador || "-"}</td>
-                          <td className="px-4 py-4 text-right space-x-2">
-                            <button
-                              type="button"
-                              onClick={() => abrirClasificacion(item)}
-                              className="bg-green-600 text-white px-3 py-1 rounded-lg text-xs"
-                            >
-                              Clasificar
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => abrirEdicionProduccion(item)}
-                              className="text-slate-300 hover:text-[#2ea66d] p-1 transition-colors cursor-pointer bg-transparent border-none"
-                              title="Editar"
-                            >
-                              <span className="material-symbols-outlined text-lg">edit</span>
-                            </button>
+                        <tr
+                          key={item.id}
+                          className="hover:bg-slate-50/50 dark:hover:bg-zinc-800/20 transition-colors"
+                        >
+                          <td className="px-4 py-4 text-sm font-semibold text-slate-600 dark:text-slate-300">
+                            {item.fecha}
+                          </td>
+                          <td className="px-4 py-4 text-sm font-semibold text-slate-600 dark:text-slate-300">
+                            {item.galpon}
+                          </td>
+                          <td className="px-4 py-4 text-sm font-semibold text-slate-600 dark:text-slate-300">
+                            {item.lote || "-"}
+                          </td>
+                          <td className="px-4 py-4 text-sm font-semibold text-slate-600 dark:text-slate-300">
+                            {item.lineaGenetica || "-"}
+                          </td>
+                          <td className="px-4 py-4 text-sm font-semibold text-slate-600 dark:text-slate-300">
+                            {item.edadSemanas} Semanas
+                          </td>
+                          <td className="px-4 py-4 text-sm font-bold text-slate-800 dark:text-slate-100">
+                            {item.huevosBuenos}
+                          </td>
+                          <td className="px-4 py-4 text-sm font-bold text-slate-800 dark:text-slate-100">
+                            {item.huevosRotos}
+                          </td>
+                          <td className="px-4 py-4 text-sm font-semibold text-slate-600 dark:text-slate-300">
+                            {item.descarte}
+                          </td>
+                          <td className="px-4 py-4 text-sm font-semibold text-slate-600 dark:text-slate-300">
+                            {item.trabajador || "-"}
+                          </td>
+                          <td className="px-4 py-4">
+                            <div className="flex items-center justify-end gap-3 h-full">
+                              <button
+                                type="button"
+                                onClick={() => clasificarProduccion(item)}
+                                className="inline-flex items-center justify-center min-w-[110px] h-10 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-semibold transition-all"
+                              >
+                                Clasificar
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => abrirEdicionProduccion(item)}
+                                className="flex items-center justify-center h-10 w-10 rounded-lg text-slate-400 hover:text-[#2ea66d] hover:bg-slate-100 transition-all bg-transparent border border-[#2ea66d]/30 cursor-pointer"
+                                title="Editar"
+                              >
+                                <span className="material-symbols-outlined text-xl">
+                                  edit
+                                </span>
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))
                     ) : (
                       <tr>
-                        <td colSpan="10" className="px-4 py-6 text-center text-sm text-slate-500 dark:text-slate-400">
+                        <td
+                          colSpan="10"
+                          className="px-4 py-6 text-center text-sm text-slate-500 dark:text-slate-400"
+                        >
                           No hay producciones pendientes de clasificar.
                         </td>
                       </tr>
@@ -515,7 +514,9 @@ const DashboardProduccion = () => {
           <aside className="space-y-8">
             <aside className="bg-primary hover:bg-[#3dbd14]  text-white p-5 rounded-2xl shadow-lg shadow-primary/20 flex flex-col justify-between min-h-[170px]">
               <header className="flex items-center gap-2 mb-4">
-                <span className="material-symbols-outlined text-lg">grid_on</span>
+                <span className="material-symbols-outlined text-lg">
+                  grid_on
+                </span>
                 <h4 className="font-bold text-sm uppercase tracking-wider text-white/95">
                   Conversión a Panales
                 </h4>
@@ -523,15 +524,23 @@ const DashboardProduccion = () => {
 
               <dl className="space-y-4 my-auto">
                 <section className="flex justify-between items-center border-b border-white/10 pb-2.5">
-                  <dt className="text-white/80 text-sm font-medium">Total Huevos</dt>
-                  <dd className="text-2xl font-black">{totalHuevos.toLocaleString()}</dd>
+                  <dt className="text-white/80 text-sm font-medium">
+                    Total Huevos
+                  </dt>
+                  <dd className="text-2xl font-black">
+                    {totalHuevos.toLocaleString()}
+                  </dd>
                 </section>
                 <section className="flex justify-between items-center border-b border-white/10 pb-2.5">
-                  <dt className="text-white/80 text-sm font-medium">Cubetas (30 und)</dt>
+                  <dt className="text-white/80 text-sm font-medium">
+                    Cubetas (30 und)
+                  </dt>
                   <dd className="text-2xl font-black">{cubetas}</dd>
                 </section>
                 <section className="flex justify-between items-center">
-                  <dt className="text-white/80 text-sm font-medium">Huevos Sueltos</dt>
+                  <dt className="text-white/80 text-sm font-medium">
+                    Huevos Sueltos
+                  </dt>
                   <dd className="text-2xl font-black">{sueltos}</dd>
                 </section>
               </dl>
@@ -555,7 +564,9 @@ const DashboardProduccion = () => {
                       type="text"
                       inputMode="numeric"
                       value={nroAves}
-                      onChange={(e) => setNroAves(e.target.value.replace(/[^\d]/g, ""))}
+                      onChange={(e) =>
+                        setNroAves(e.target.value.replace(/[^\d]/g, ""))
+                      }
                       className="mt-1.5 bg-slate-50 dark:bg-zinc-950 border border-slate-200/50 dark:border-zinc-800 rounded-xl text-sm py-2.5 px-3 focus:ring-1 focus:ring-[#2ea66d] focus:border-[#2ea66d] text-slate-800 dark:text-slate-200 font-bold text-center"
                     />
                   </label>
@@ -569,7 +580,9 @@ const DashboardProduccion = () => {
                       onFocus={(e) => {
                         if (e.target.value === "0") setGAve("");
                       }}
-                      onChange={(e) => setGAve(e.target.value.replace(/[^\d]/g, ""))}
+                      onChange={(e) =>
+                        setGAve(e.target.value.replace(/[^\d]/g, ""))
+                      }
                       className="mt-1.5 bg-slate-50 dark:bg-zinc-950 border border-slate-200/50 dark:border-zinc-800 rounded-xl text-sm py-2.5 px-3 focus:ring-1 focus:ring-[#2ea66d] focus:border-[#2ea66d] text-slate-800 dark:text-slate-200 font-bold text-center"
                     />
                   </label>
@@ -582,7 +595,9 @@ const DashboardProduccion = () => {
                     </p>
                     <p className="text-xl font-black text-slate-800 dark:text-slate-100 mt-1">
                       {reqAlimentoKg.toFixed(1)}{" "}
-                      <span className="text-xs font-normal text-slate-500">kg</span>
+                      <span className="text-xs font-normal text-slate-500">
+                        kg
+                      </span>
                     </p>
                   </section>
                   <span className="material-symbols-outlined text-[#2ea66d] font-bold cursor-pointer hover:rotate-45 transition-transform">
@@ -618,8 +633,6 @@ const DashboardProduccion = () => {
           </aside>
         </section>
 
-        
-
         <article className="bg-white dark:bg-zinc-900 p-6 rounded-3xl shadow-sm border border-slate-100/80 dark:border-zinc-800/80 mb-8">
           <header className="flex justify-between items-center mb-8">
             <h3 className="text-slate-800 dark:text-white font-bold">
@@ -630,14 +643,18 @@ const DashboardProduccion = () => {
                 <span className="w-3 h-3 bg-[#2ea66d] rounded-sm" /> Huevos
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="w-3 h-3 bg-[#bbf7d0] dark:bg-emerald-800 rounded-sm" /> Alimento
+                <span className="w-3 h-3 bg-[#bbf7d0] dark:bg-emerald-800 rounded-sm" />{" "}
+                Alimento
               </span>
             </div>
           </header>
 
           <section className="flex justify-between items-end gap-2 sm:gap-4 h-64 px-2 sm:px-6">
             {weeklyData.map((data, index) => (
-              <div key={index} className="flex-1 flex flex-col items-center gap-2 group">
+              <div
+                key={index}
+                className="flex-1 flex flex-col items-center gap-2 group"
+              >
                 <div className="w-full max-w-[40px] bg-slate-50 dark:bg-zinc-950/40 rounded-full h-48 flex flex-col justify-end overflow-hidden border border-slate-100 dark:border-zinc-900/50 relative shadow-inner">
                   <div
                     className="bg-[#bbf7d0] dark:bg-emerald-800/50 w-full rounded-t-full transition-all duration-700 ease-out group-hover:opacity-90"
@@ -648,7 +665,9 @@ const DashboardProduccion = () => {
                     style={{ height: `${data.huevos}%` }}
                   />
                 </div>
-                <span className="text-xs font-bold text-slate-400 mt-1">{data.day}</span>
+                <span className="text-xs font-bold text-slate-400 mt-1">
+                  {data.day}
+                </span>
               </div>
             ))}
           </section>
@@ -671,7 +690,10 @@ const DashboardProduccion = () => {
         >
           <div
             className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
-            onClick={() => setIsModalRecoleccionOpen(false)}
+            onClick={() => {
+              handleLimpiarFormulario();
+              setIsModalRecoleccionOpen(false);
+            }}
           />
           <article className="relative bg-white dark:bg-zinc-900 rounded-3xl text-left overflow-hidden shadow-2xl w-full max-w-xl border border-slate-100 dark:border-zinc-800 animate-slide-up z-10 p-8">
             <header className="flex items-center justify-between mb-6 pb-2 border-b border-slate-50 dark:border-zinc-800">
@@ -682,7 +704,10 @@ const DashboardProduccion = () => {
                 Registro de Recolección de Huevos
               </h3>
               <button
-                onClick={() => setIsModalRecoleccionOpen(false)}
+                onClick={() => {
+                  handleLimpiarFormulario();
+                  setIsModalRecoleccionOpen(false);
+                }}
                 className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors p-1 flex cursor-pointer bg-transparent border-none"
               >
                 <span className="material-symbols-outlined">close</span>
@@ -707,7 +732,11 @@ const DashboardProduccion = () => {
                     type="text"
                     inputMode="numeric"
                     value={edadSemanasRecoleccion}
-                    onChange={(e) => setEdadSemanasRecoleccion(e.target.value.replace(/[^\d]/g, ""))}
+                    onChange={(e) =>
+                      setEdadSemanasRecoleccion(
+                        e.target.value.replace(/[^\d]/g, ""),
+                      )
+                    }
                     className="mt-1.5 bg-slate-50 dark:bg-zinc-950 border border-slate-200/50 dark:border-zinc-800 rounded-xl py-2.5 px-3 text-sm focus:ring-1 focus:ring-[#2ea66d] focus:border-[#2ea66d] font-semibold text-slate-800 dark:text-slate-200"
                   />
                 </label>
@@ -732,9 +761,15 @@ const DashboardProduccion = () => {
                     onChange={(e) => setGalponOrigen(e.target.value)}
                     className="mt-1.5 bg-slate-50 dark:bg-zinc-950 border border-slate-200/50 dark:border-zinc-800 rounded-xl py-2.5 px-3 text-sm focus:ring-1 focus:ring-[#2ea66d] focus:border-[#2ea66d] font-semibold text-slate-800 dark:text-slate-200"
                   >
-                    <option value="Galpón A - Ponedoras">Galpón A - Ponedoras</option>
-                    <option value="Galpón B - Ponedoras">Galpón B - Ponedoras</option>
-                    <option value="Galpón C - Ponedoras">Galpón C - Ponedoras</option>
+                    <option value="Galpón A - Ponedoras">
+                      Galpón A - Ponedoras
+                    </option>
+                    <option value="Galpón B - Ponedoras">
+                      Galpón B - Ponedoras
+                    </option>
+                    <option value="Galpón C - Ponedoras">
+                      Galpón C - Ponedoras
+                    </option>
                   </select>
                 </label>
               </div>
@@ -774,7 +809,9 @@ const DashboardProduccion = () => {
                     inputMode="numeric"
                     min="0"
                     value={huevosBuenos}
-                    onChange={(e) => setHuevosBuenos(e.target.value.replace(/[^\d]/g, ""))}
+                    onChange={(e) =>
+                      setHuevosBuenos(e.target.value.replace(/[^\d]/g, ""))
+                    }
                     className="mt-1.5 bg-slate-50 dark:bg-zinc-950 border border-slate-200/50 dark:border-zinc-800 rounded-xl py-2.5 px-3 text-sm focus:ring-1 focus:ring-[#2ea66d] focus:border-[#2ea66d] font-semibold text-slate-800 dark:text-slate-200"
                   />
                 </label>
@@ -786,7 +823,9 @@ const DashboardProduccion = () => {
                     inputMode="numeric"
                     min="0"
                     value={huevosRotosInput}
-                    onChange={(e) => setHuevosRotosInput(e.target.value.replace(/[^\d]/g, ""))}
+                    onChange={(e) =>
+                      setHuevosRotosInput(e.target.value.replace(/[^\d]/g, ""))
+                    }
                     className="mt-1.5 bg-slate-50 dark:bg-zinc-950 border border-slate-200/50 dark:border-zinc-800 rounded-xl py-2.5 px-3 text-sm focus:ring-1 focus:ring-[#2ea66d] focus:border-[#2ea66d] font-semibold text-slate-800 dark:text-slate-200"
                   />
                 </label>
@@ -800,7 +839,9 @@ const DashboardProduccion = () => {
                     inputMode="numeric"
                     min="0"
                     value={descarte}
-                    onChange={(e) => setDescarte(e.target.value.replace(/[^\d]/g, ""))}
+                    onChange={(e) =>
+                      setDescarte(e.target.value.replace(/[^\d]/g, ""))
+                    }
                     className="mt-1.5 bg-slate-50 dark:bg-zinc-950 border border-slate-200/50 dark:border-zinc-800 rounded-xl py-2.5 px-3 text-sm focus:ring-1 focus:ring-[#2ea66d] focus:border-[#2ea66d] font-semibold text-slate-800 dark:text-slate-200"
                   />
                 </label>
@@ -822,7 +863,9 @@ const DashboardProduccion = () => {
                   type="submit"
                   className="flex-1 bg-[#3dbd14] text-white font-bold py-3 rounded-xl hover:bg-[#278d5c] transition-all cursor-pointer text-center text-sm shadow-sm border-none"
                 >
-                  Guardar Registro
+                  {produccionEnEdicion
+                    ? "Actualizar Registro"
+                    : "Guardar Registro"}
                 </button>
                 <button
                   type="button"
@@ -833,229 +876,6 @@ const DashboardProduccion = () => {
                 </button>
               </div>
             </form>
-          </article>
-        </dialog>
-      )}
-
-      {isModalClasifOpen && (
-        <dialog
-          open
-          className="fixed inset-0 z-50 overflow-y-auto bg-transparent flex items-center justify-center min-h-screen p-4 m-0 w-full max-w-none"
-          aria-labelledby="modal-title"
-        >
-          <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
-            onClick={() => setIsModalClasifOpen(false)}
-          />
-          <article className="relative bg-white dark:bg-zinc-950 rounded-3xl text-left overflow-hidden shadow-2xl w-full max-w-4xl border border-slate-100 dark:border-zinc-800/80 animate-slide-up z-10">
-            <section className="p-8">
-              <header className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100 dark:border-zinc-800">
-                <div className="flex items-center gap-3">
-                  <span className="bg-[#2ea66d]/10 text-[#2ea66d] p-3 rounded-2xl material-symbols-outlined text-2xl font-bold">
-                    table_chart
-                  </span>
-                  <div>
-                    <h3 className="text-xl font-bold text-slate-800 dark:text-white">
-                      Agregar reg. Clasif.
-                    </h3>
-                    <p className="text-xs text-slate-500">
-                      Registre y optimice la clasificación de la producción diaria
-                    </p>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => setIsModalClasifOpen(false)}
-                  className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-zinc-800 flex cursor-pointer bg-transparent border-none"
-                >
-                  <span className="material-symbols-outlined">close</span>
-                </button>
-              </header>
-
-              <form onSubmit={handleClasifSubmit} className="space-y-6">
-                {produccionSeleccionada && (
-                  <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6 p-4 bg-slate-50 dark:bg-zinc-900 rounded-3xl border border-slate-200 dark:border-zinc-800">
-                    <div>
-                      <p className="text-[10px] uppercase tracking-widest text-slate-400 dark:text-slate-500 font-bold">Galpón</p>
-                      <p className="mt-1 font-bold text-slate-800 dark:text-slate-100">{produccionSeleccionada.galpon}</p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] uppercase tracking-widest text-slate-400 dark:text-slate-500 font-bold">Lote</p>
-                      <p className="mt-1 font-bold text-slate-800 dark:text-slate-100">{produccionSeleccionada.lote || "-"}</p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] uppercase tracking-widest text-slate-400 dark:text-slate-500 font-bold">Línea</p>
-                      <p className="mt-1 font-bold text-slate-800 dark:text-slate-100">{produccionSeleccionada.lineaGenetica || "-"}</p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] uppercase tracking-widest text-slate-400 dark:text-slate-500 font-bold">Edad</p>
-                      <p className="mt-1 font-bold text-slate-800 dark:text-slate-100">{produccionSeleccionada.edadSemanas} Semanas</p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] uppercase tracking-widest text-slate-400 dark:text-zinc-500 font-bold">Buenos</p>
-                      <p className="mt-1 font-bold text-slate-800 dark:text-slate-100">{produccionSeleccionada.huevosBuenos}</p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] uppercase tracking-widest text-slate-400 dark:text-slate-500 font-bold">Rotos</p>
-                      <p className="mt-1 font-bold text-slate-800 dark:text-slate-100">{produccionSeleccionada.huevosRotos}</p>
-                    </div>
-                  </section>
-                )}
-
-                <fieldset className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5 border-none p-0 m-0">
-                  <label className="flex flex-col space-y-2 text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-                    Fecha
-                    <input
-                      type="date"
-                      value={fechaClasif}
-                      onChange={(e) => setFechaClasif(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl focus:ring-2 focus:ring-[#2ea66d]/50 focus:border-[#2ea66d] px-4 py-3 text-sm text-slate-800 dark:text-slate-200 font-bold"
-                    />
-                  </label>
-
-                  <label className="flex flex-col space-y-2 text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-                    Galpón
-                    <select
-                      value={galponClasif}
-                      onChange={(e) => setGalponClasif(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl focus:ring-2 focus:ring-[#2ea66d]/50 focus:border-[#2ea66d] px-4 py-3 text-sm text-slate-800 dark:text-slate-200 font-bold"
-                    >
-                      <option value="Galpón A - Ponedoras">Galpón A - Ponedoras</option>
-                      <option value="Galpón B - Ponedoras">Galpón B - Ponedoras</option>
-                      <option value="Galpón C - Ponedoras">Galpón C - Ponedoras</option>
-                    </select>
-                  </label>
-
-                  <label className="flex flex-col space-y-2 text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-                    Línea
-                    <select
-                      value={lineaClasif}
-                      onChange={(e) => setLineaClasif(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl focus:ring-2 focus:ring-[#2ea66d]/50 focus:border-[#2ea66d] px-4 py-3 text-sm text-slate-800 dark:text-slate-200 font-bold"
-                    >
-                      <option value="Hy-Line Brown">Hy-Line Brown</option>
-                      <option value="Hy-Line W36">Hy-Line W36</option>
-                      <option value="Lohmann Brown">Lohmann Brown</option>
-                      <option value="ISA Brown">ISA Brown</option>
-                      <option value="Dekalb White">Dekalb White</option>
-                    </select>
-                  </label>
-
-                  <label className="flex flex-col space-y-2 text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-                    Edad en Semanas
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      value={edadSemanasClasif}
-                      onChange={(e) => setEdadSemanasClasif(e.target.value.replace(/[^\d]/g, ""))}
-                      placeholder="Edad en semanas"
-                      className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl focus:ring-2 focus:ring-[#2ea66d]/50 focus:border-[#2ea66d] px-4 py-3 text-sm text-slate-800 dark:text-slate-200 font-bold text-center"
-                    />
-                  </label>
-                </fieldset>
-
-                <section className="mt-8">
-                  <h4 className="text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-4 uppercase tracking-wider border-b border-slate-100 dark:border-zinc-800/80 pb-2 flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[#2ea66d] text-lg font-bold">
-                      tune
-                    </span>
-                    Optimización por Tipo de Huevo
-                  </h4>
-
-                  <div className="overflow-x-auto rounded-2xl border border-slate-100 dark:border-zinc-800/80">
-                    <table className="w-full text-left text-xs min-w-[700px]">
-                      <thead className="bg-[#fcfdfd] dark:bg-zinc-900 text-slate-500 font-bold uppercase tracking-wider border-b border-slate-100 dark:border-zinc-800/80">
-                        <tr>
-                          <th className="px-6 py-4">Tipo Huevo</th>
-                          <th className="px-6 py-4 text-center">Hoy (Uds)</th>
-                          <th className="px-6 py-4 text-center">Ayer (Uds)</th>
-                          <th className="px-6 py-4 text-center">Acumulado</th>
-                          <th className="px-6 py-4 text-center">Precios (USD)</th>
-                          <th className="px-6 py-4 text-center">Cant. Panales</th>
-                        </tr>
-                      </thead>
-
-                      <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/80">
-                        {Object.entries(clasificacionData).map(([key, value]) => {
-                          const label = key === "rotos" ? "Rotos / Dañados" : `Huevo ${key.toUpperCase()}`;
-                          const hoyVal = Number(value.hoy || 0);
-                          const ayerVal = Number(value.ayer || 0);
-                          const acumuladoVal = hoyVal + ayerVal;
-                          const cantPanalesVal = (hoyVal / 30).toFixed(1);
-
-                          return (
-                            <tr key={key} className="hover:bg-slate-50/50 dark:hover:bg-zinc-900/40 transition-colors">
-                              <td className="px-6 py-5 font-bold text-slate-700 dark:text-slate-300 uppercase">
-                                {label}
-                              </td>
-
-                              <td className="px-6 py-5 text-center">
-                                <input
-                                  type="text"
-                                  inputMode="numeric"
-                                  value={value.hoy}
-                                  onChange={(e) =>
-                                    handleClasifValueChange(key, "hoy", e.target.value.replace(/[^\d]/g, ""))
-                                  }
-                                  className="w-24 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl py-1.5 px-2 text-center text-sm font-bold text-slate-800 dark:text-slate-200 focus:ring-1 focus:ring-[#2ea66d] focus:border-[#2ea66d]"
-                                />
-                              </td>
-
-                              <td className="px-6 py-5 text-center text-slate-400 font-semibold text-sm">
-                                {value.ayer}
-                              </td>
-
-                              <td className="px-6 py-5 text-center font-bold text-slate-700 dark:text-slate-300 text-sm">
-                                {acumuladoVal}
-                              </td>
-
-                              <td className="px-6 py-5 text-center">
-                                <div className="flex items-center justify-center gap-1.5">
-                                  <span className="text-slate-400 font-bold">$</span>
-                                  <input
-                                    type="text"
-                                    inputMode="decimal"
-                                    value={value.precioUsd}
-                                    onChange={(e) =>
-                                      handleClasifValueChange(key, "precioUsd", e.target.value.replace(/[^0-9.]/g, ""))
-                                    }
-                                    className="w-20 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl py-1.5 px-2 text-center text-sm font-bold text-slate-800 dark:text-slate-200 focus:ring-1 focus:ring-[#2ea66d] focus:border-[#2ea66d]"
-                                  />
-                                </div>
-                              </td>
-
-                              <td className="px-6 py-5 text-center">
-                                <span className="inline-flex items-center justify-center px-3 py-1 bg-emerald-50 dark:bg-emerald-950/30 text-[#2ea66d] dark:text-emerald-400 rounded-full font-bold text-sm">
-                                  {cantPanalesVal} <span className="text-[10px] font-normal ml-1">panales</span>
-                                </span>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </section>
-
-                <footer className="flex flex-col sm:flex-row gap-4 mt-8 pt-6 border-t border-slate-100 dark:border-zinc-800">
-                  <button
-                    type="submit"
-                    className="flex-1 bg-[#2ea66d] text-white font-bold py-3.5 rounded-xl hover:bg-[#278d5c] transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2 cursor-pointer border-none"
-                  >
-                    <span className="material-symbols-outlined font-bold text-lg">save</span>
-                    Registrar Clasificación
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setIsModalClasifOpen(false)}
-                    className="flex-1 border border-slate-200 dark:border-zinc-700 text-slate-500 dark:text-slate-400 font-bold py-3.5 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-900 transition-all cursor-pointer text-center bg-transparent"
-                  >
-                    Cancelar
-                  </button>
-                </footer>
-              </form>
-            </section>
           </article>
         </dialog>
       )}
@@ -1091,7 +911,9 @@ const DashboardProduccion = () => {
                   Tipo de Alimento
                   <select className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl focus:ring-2 focus:ring-[#2ea66d]/50 py-3 px-4 text-sm font-bold text-slate-800 dark:text-slate-200">
                     <option value="inicio">Inicio (0-4 semanas)</option>
-                    <option value="crecimiento">Crecimiento (5-18 semanas)</option>
+                    <option value="crecimiento">
+                      Crecimiento (5-18 semanas)
+                    </option>
                     <option value="produccion">Producción (19+ semanas)</option>
                   </select>
                 </label>
@@ -1103,7 +925,9 @@ const DashboardProduccion = () => {
                     inputMode="decimal"
                     placeholder="0.0"
                     value={alimentoInput}
-                    onChange={(e) => setAlimentoInput(e.target.value.replace(/[^0-9.]/g, ""))}
+                    onChange={(e) =>
+                      setAlimentoInput(e.target.value.replace(/[^0-9.]/g, ""))
+                    }
                     className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl focus:ring-2 focus:ring-[#2ea66d]/50 py-3 px-4 text-lg font-bold text-slate-800 dark:text-slate-200"
                   />
                 </label>
@@ -1114,7 +938,9 @@ const DashboardProduccion = () => {
                   </figcaption>
                   <p className="text-2xl font-black text-slate-800 dark:text-slate-100">
                     {previewBultos}{" "}
-                    <span className="text-sm font-normal text-slate-500">Bultos (50kg)</span>
+                    <span className="text-sm font-normal text-slate-500">
+                      Bultos (50kg)
+                    </span>
                   </p>
                 </figure>
 
