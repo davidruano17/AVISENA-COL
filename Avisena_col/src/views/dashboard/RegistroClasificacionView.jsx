@@ -17,12 +17,28 @@ const formatCurrency = (val) => new Intl.NumberFormat('es-CO', {
     style: 'currency', currency: 'COP', minimumFractionDigits: 0
 }).format(val);
 
+const formatExactPanales = (unidades) => {
+    if (!unidades || unidades === 0) return "0 panales";
+    const panales = Math.floor(unidades / 30);
+    const residuo = unidades % 30;
+    if (panales === 0) return `${residuo} uds`;
+    if (residuo === 0) return `${panales} ${panales === 1 ? 'panal' : 'panales'}`;
+    return `${panales} ${panales === 1 ? 'panal' : 'panales'} y ${residuo} uds`;
+};
+
+const getUnidades = (reg) => {
+    return reg.unidades !== undefined ? reg.unidades : (reg.panales || 0);
+};
+
+const CLASIFICACIONES = ['C', 'B', 'A', 'AA', 'AAA', 'Jumbo'];
+
 const initialTableData = {
-    C: { hoy: 0, ayer: 0, precio: "" },
-    B: { hoy: 0, ayer: 0, precio: "" },
-    AAA: { hoy: 0, ayer: 0, precio: "" },
-    AA: { hoy: 0, ayer: 0, precio: "" },
-    A: { hoy: 0, ayer: 0, precio: "" }
+    C: { hoy: "", ayer: 0, precio: "" },
+    B: { hoy: "", ayer: 0, precio: "" },
+    A: { hoy: "", ayer: 0, precio: "" },
+    AA: { hoy: "", ayer: 0, precio: "" },
+    AAA: { hoy: "", ayer: 0, precio: "" },
+    Jumbo: { hoy: "", ayer: 0, precio: "" }
 };
 
 export default function ClasificacionView() {
@@ -38,8 +54,8 @@ export default function ClasificacionView() {
     const [generalInfo, setGeneralInfo] = useState({
         fecha: new Date().toISOString().split('T')[0],
         galpon: "",
+        lote: "", 
         responsable: "",
-        linea: "",
         observaciones: ""
     });
 
@@ -57,6 +73,36 @@ export default function ClasificacionView() {
             localStorage.setItem('avisena_storage', JSON.stringify(historial));
         }
     }, [historial]);
+
+    useEffect(() => {
+        if (generalInfo.galpon && historial.length > 0) {
+            const registrosGalpon = historial
+                .filter(r => r.galpon.toString() === generalInfo.galpon.toString())
+                .sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+            if (registrosGalpon.length > 0 && registrosGalpon[0].sobrantesParaManana) {
+                const ultimosSobrantes = registrosGalpon[0].sobrantesParaManana;
+                setTableData(prev => {
+                    const actualizado = { ...prev };
+                    CLASIFICACIONES.forEach(tipo => {
+                        actualizado[tipo] = {
+                            ...actualizado[tipo],
+                            ayer: ultimosSobrantes[tipo] || 0
+                        };
+                    });
+                    return actualizado;
+                });
+            } else {
+                setTableData(prev => {
+                    const limpiado = { ...prev };
+                    CLASIFICACIONES.forEach(tipo => {
+                        limpiado[tipo] = { ...limpiado[tipo], ayer: 0 };
+                    });
+                    return limpiado;
+                });
+            }
+        }
+    }, [generalInfo.galpon, historial]);
 
     const openModal = (name) => setModals(prev => ({ ...prev, [name]: true }));
     const closeModal = (name) => {
@@ -76,8 +122,8 @@ export default function ClasificacionView() {
         setGeneralInfo({
             fecha: new Date().toISOString().split('T')[0],
             galpon: "",
+            lote: "",
             responsable: "",
-            linea: "",
             observaciones: ""
         });
         closeModal('registro');
@@ -89,23 +135,69 @@ export default function ClasificacionView() {
             ...prev,
             [tipo]: {
                 ...prev[tipo],
-                [field]: field === 'precio' ? formatDots(value) : (value === "" ? "" : parseInt(value) || 0)
+                [field]: field === 'precio' 
+                    ? formatDots(value) 
+                    : (value === "" ? "" : parseInt(value) || 0)
             }
         }));
     };
 
-    const totales = Object.keys(tableData).reduce((acc, key) => {
+    const totales = CLASIFICACIONES.reduce((acc, key) => {
         const row = tableData[key];
+        if (!row) return acc;
+
         const hoy = parseInt(row.hoy) || 0;
         const precio = cleanNum(row.precio);
-        const sub = hoy * precio;
-        acc.panales += hoy;
+        const panalesHoy = hoy / 30;
+        const sub = panalesHoy * precio;
+        
+        acc.unidades += hoy;
+        acc.panales += panalesHoy;
         acc.dinero += sub;
         return acc;
-    }, { panales: 0, dinero: 0 });
+    }, { unidades: 0, panales: 0, dinero: 0 });
+
+    const sobrantesPorTipo = CLASIFICACIONES.reduce((acc, tipo) => {
+        const row = tableData[tipo];
+        if (row) {
+            const hoy = parseInt(row.hoy) || 0;
+            const ayer = parseInt(row.ayer) || 0;
+            const totalAcumulado = hoy + ayer;
+            acc[tipo] = totalAcumulado % 30; 
+        } else {
+            acc[tipo] = 0;
+        }
+        return acc;
+    }, {});
+
+    const totalSobrantesUnidades = Object.values(sobrantesPorTipo).reduce((a, b) => a + b, 0);
+
+    const obtenerTextoDesglose = (data) => {
+        if (!data) return "Ninguno";
+        return CLASIFICACIONES
+            .map(tipo => {
+                const row = data[tipo];
+                if (!row) return null;
+                const cant = parseInt(row.hoy) || 0;
+                return cant > 0 ? `${cant} ${tipo}` : null;
+            })
+            .filter(Boolean)
+            .join(', ') || "Ninguno";
+    };
+
+    const obtenerTextoSobrantes = (dataSobrantes) => {
+        if (!dataSobrantes) return "Ninguno";
+        return CLASIFICACIONES
+            .map(tipo => {
+                const cant = dataSobrantes[tipo] || 0;
+                return cant > 0 ? `${cant} ${tipo}` : null;
+            })
+            .filter(Boolean)
+            .join(', ') || "Ninguno";
+    };
 
     const handleContinuarPaso2 = () => {
-        if (totales.panales <= 0) {
+        if (totales.unidades <= 0) {
             alert('Por favor, ingrese cantidades en la recolección antes de continuar.');
             return;
         }
@@ -115,16 +207,28 @@ export default function ClasificacionView() {
     const handleSave = (e) => {
         e.preventDefault();
 
+        const detallesNormalizados = {};
+        CLASIFICACIONES.forEach(tipo => {
+            detallesNormalizados[tipo] = {
+                hoy: parseInt(tableData[tipo].hoy) || 0,
+                ayer: parseInt(tableData[tipo].ayer) || 0,
+                precio: tableData[tipo].precio || ""
+            };
+        });
+
         const registro = {
             id: `REC-${String(obtenerSiguienteId()).padStart(3, '0')}`,
             fecha: generalInfo.fecha,
-            linea: generalInfo.linea,
             galpon: generalInfo.galpon,
+            lote: generalInfo.lote || "N/A", 
             responsable: generalInfo.responsable,
             total: formatCurrency(totales.dinero),
+            unidades: totales.unidades,
             panales: totales.panales,
             obs: generalInfo.observaciones || "Sin observaciones",
-            detalles: { ...tableData }
+            detalles: detallesNormalizados,
+            sobrantesParaManana: { ...sobrantesPorTipo },
+            totalSobrantes: totalSobrantesUnidades
         };
 
         const nuevoHistorial = [...historial, registro];
@@ -138,8 +242,8 @@ export default function ClasificacionView() {
         setGeneralInfo({
             fecha: new Date().toISOString().split('T')[0],
             galpon: "",
+            lote: "",
             responsable: "",
-            linea: "",
             observaciones: ""
         });
         setStep(1);
@@ -162,15 +266,21 @@ export default function ClasificacionView() {
         }
     };
 
+    const handleMandarAFinanzas = (reg) => {
+        localStorage.setItem('avisena_transfer_data', JSON.stringify(reg));
+        window.location.href = '/finanzas?action=importar_clasificacion';
+    };
+
     const handleExportarExcel = () => {
         if (historial.length === 0) {
             alert('No hay datos para exportar.');
             return;
         }
-        const encabezados = ["ID", "Fecha", "Linea", "Galpon", "Responsable", "Panales", "Total", "Observaciones"];
+        const encabezados = ["ID", "Fecha", "Galpon", "Lote", "Responsable", "Unidades", "Panales", "Total", "Sobrantes Mañana", "Observaciones"];
         const filas = historial.map(reg => [
-            reg.id, reg.fecha, reg.linea, reg.galpon, reg.responsable, reg.panales,
-            reg.total.replace(/[$. ]/g, ''), reg.obs.replace(/,/g, " ")
+            reg.id, reg.fecha, reg.galpon, reg.lote || "N/A", reg.responsable,
+            getUnidades(reg), formatExactPanales(getUnidades(reg)),
+            reg.total.replace(/[$. ]/g, ''), reg.totalSobrantes || 0, reg.obs.replace(/,/g, " ")
         ].join(","));
 
         const contenidoCsv = "\ufeff" + [encabezados.join(","), ...filas].join("\n");
@@ -183,15 +293,14 @@ export default function ClasificacionView() {
     };
 
     const historialFiltrado = historial.filter(reg => 
-        reg.galpon.toString().includes(filtroGalpon)
+        reg.galpon && reg.galpon.toString().includes(filtroGalpon)
     );
 
     return (
-        <div className="min-h-screen bg-slate-50 text-gray-800 antialiased font-sans">
+        <span className="min-h-screen bg-slate-50 text-gray-800 antialiased font-sans block">
             
 
             <main className="max-w-6xl mx-auto mt-12 px-6 pb-16 space-y-12">
-                {/* BANNER PRINCIPAL */}
                 <section className="flex flex-col md:flex-row md:justify-between md:items-center bg-white rounded-2xl p-8 shadow-sm border border-gray-100 gap-6">
                     <header>
                         <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Registro de Clasificación de Huevos</h1>
@@ -199,18 +308,17 @@ export default function ClasificacionView() {
                     </header>
                     <button 
                         type="button" 
-                        className="bg-[#49e619] hover:bg-[#3cd110] text-slate-950 font-extrabold py-3.5 px-6 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 tracking-wide text-sm"
+                        className=" bg-primary hover:bg-[#3dbd14] text-slate-950 font-extrabold py-3.5 px-6 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 tracking-wide text-sm"
                         onClick={() => openModal('registro')}
                     >
                         <span className="text-lg font-black">+</span> Agregar Nueva Clasificación
                     </button>
                 </section>
 
-                {/* SECCIÓN DEL HISTORIAL INTEGRADO */}
                 <section className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                     <header className="p-6 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                         <h2 className="text-lg font-bold text-slate-900">Historial de Clasificación</h2>
-                        <div className="flex items-center gap-3">
+                        <aside className="flex items-center gap-3">
                             <input 
                                 type="text" 
                                 placeholder="Filtrar por galpón..." 
@@ -221,144 +329,225 @@ export default function ClasificacionView() {
                             <button 
                                 type="button" 
                                 title="Exportar a Excel"
-                                className="bg-[#49e619] hover:bg-[#3cd110] text-slate-950 p-2.5 rounded-xl transition-colors shadow-sm"
+                                className=" bg-primary hover:bg-[#3dbd14] text-slate-950 p-2.5 rounded-xl transition-colors shadow-sm"
                                 onClick={handleExportarExcel}
                             >
-                            📄
+                                📥
                             </button>
-                        </div>
+                        </aside>
                     </header>
 
-                    <div className="overflow-x-auto">
+                    <section className="overflow-x-auto block">
                         <table className="w-full text-left border-collapse text-xs uppercase tracking-wider font-semibold">
-                            <thead>
-                                <tr className="bg-slate-50 text-gray-400 border-b border-gray-100">
-                                    <th className="p-4">ID / Fecha</th>
-                                    <th className="p-4">Galpón</th>
-                                    <th className="p-4">Línea</th>
-                                    <th className="p-4">Panales</th>
-                                    <th className="p-4">Total</th>
-                                    <th className="p-4">Responsable</th>
-                                    <th className="p-4 text-center">Acciones</th>
+                            <thead className="bg-slate-50 border-b border-gray-200">
+                                <tr className="text-gray-400">
+                                    <th className="p-4 font-bold text-xs uppercase tracking-wider">ID / Fecha</th>
+                                    <th className="p-4 font-bold text-xs uppercase tracking-wider">Galpón / Lote</th>
+                                    <th className="p-4 font-bold text-xs uppercase tracking-wider">Producción Hoy</th>
+                                    <th className="p-4 font-bold text-xs uppercase tracking-wider">Sobrantes Mañana</th>
+                                    <th className="p-4 font-bold text-xs uppercase tracking-wider">Total Dinero</th>
+                                    <th className="p-4 font-bold text-xs uppercase tracking-wider">Responsable</th>
+                                    <th className="p-4 text-center font-bold text-xs uppercase tracking-wider">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100 normal-case font-normal text-sm text-gray-700">
                                 {historialFiltrado.length === 0 ? (
                                     <tr>
-                                        <td colSpan="7" className="text-center py-12 text-gray-400 font-medium">
-                                            No se encontraron registros de clasificación.
+                                        <td colSpan="7" className="text-center py-16 text-gray-400 font-medium bg-slate-50/20">
+                                            <span className="flex flex-col items-center justify-center gap-2">
+                                                <span className="text-3xl">🥚</span>
+                                                <strong className="text-sm font-semibold text-slate-500">No se encontraron registros de clasificación</strong>
+                                                <span className="text-xs text-gray-450">Agrega una nueva clasificación para comenzar el historial.</span>
+                                            </span>
                                         </td>
                                     </tr>
                                 ) : historialFiltrado.map((reg, index) => (
                                     <tr key={index} className="hover:bg-slate-50/60 transition-colors">
                                         <td className="p-4">
-                                            <span className="font-bold text-slate-900 block">{reg.id}</span>
+                                            <span className="font-bold text-slate-900 block font-mono tracking-tight">{reg.id}</span>
                                             <span className="text-xs text-gray-400 block mt-0.5">{reg.fecha}</span>
                                         </td>
-                                        <td className="p-4 font-medium text-slate-800">N° {reg.galpon}</td>
-                                        <td className="p-4 text-gray-600">{reg.linea}</td>
-                                        <td className="p-4 font-bold text-slate-900">{reg.panales} Uds</td>
-                                        <td className="p-4 font-bold text-green-600">{reg.total}</td>
-                                        <td className="p-4 text-gray-500">{reg.responsable}</td>
                                         <td className="p-4">
-                                            <div className="flex justify-center gap-2">
-                                                <button type="button" className="bg-slate-100 hover:bg-slate-200 text-slate-700 p-2 rounded-lg transition-colors" title="Ver Detalle" onClick={() => verDetalle(index)}>👁️</button>
-                                                <button type="button" className="bg-red-50 hover:bg-red-100 text-red-600 p-2 rounded-lg transition-colors" title="Eliminar" onClick={() => eliminarRegistro(index)}>🗑️</button>
-                                            </div>
+                                            <span className="flex flex-col gap-1">
+                                                <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200 w-max">
+                                                    Galpón {reg.galpon}
+                                                </span>
+                                                <span className="text-xs text-gray-500 font-medium pl-1">Lote: {reg.lote || "N/A"}</span>
+                                            </span>
+                                        </td>
+                                        <td className="p-4">
+                                            <span className="flex flex-col">
+                                                <span className="font-extrabold text-slate-950">
+                                                    {getUnidades(reg)} <span className="text-[10px] text-gray-400 font-semibold">UDS</span>
+                                                    <span className="text-xs font-normal text-gray-500 block normal-case">
+                                                        ({obtenerTextoDesglose(reg.detalles || {})})
+                                                    </span>
+                                                </span>
+                                                <span className="text-xs font-semibold text-green-600 mt-0.5">{formatExactPanales(getUnidades(reg))}</span>
+                                            </span>
+                                        </td>
+                                        <td className="p-4">
+                                            <span className="flex flex-col">
+                                                <span className="font-bold text-amber-700">
+                                                    {reg.totalSobrantes || 0} <span className="text-[10px] text-amber-500 font-semibold">UDS</span>
+                                                </span>
+                                                <span className="text-xs font-normal text-gray-400 block normal-case">
+                                                    ({obtenerTextoSobrantes(reg.sobrantesParaManana)})
+                                                </span>
+                                            </span>
+                                        </td>
+                                        <td className="p-4 font-extrabold text-green-600 text-base">{reg.total}</td>
+                                        <td className="p-4">
+                                            <span className="flex items-center gap-2">
+                                                <span className="w-6 h-6 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-[10px] font-bold uppercase border border-slate-200">
+                                                    {reg.responsable ? reg.responsable.charAt(0) : 'U'}
+                                                </span>
+                                                <span className="text-gray-700 font-medium">{reg.responsable || "N/A"}</span>
+                                            </span>
+                                        </td>
+                                        <td className="p-4">
+                                            <span className="flex justify-center gap-1.5">
+                                                <button 
+                                                    type="button" 
+                                                    className="bg-blue-50 hover:bg-blue-100 text-blue-600 w-8 h-8 flex items-center justify-center rounded-xl transition-all duration-150 shadow-sm" 
+                                                    title="Mandar a Finanzas como Ingreso" 
+                                                    onClick={() => handleMandarAFinanzas(reg)}
+                                                >
+                                                    📊
+                                                </button>
+                                                <button 
+                                                    type="button" 
+                                                    className="bg-slate-100 hover:bg-slate-200/80 text-slate-700 w-8 h-8 flex items-center justify-center rounded-xl transition-all duration-150 shadow-sm" 
+                                                    title="Ver Detalle" 
+                                                    onClick={() => verDetalle(index)}
+                                                >
+                                                    👁️
+                                                </button>
+                                                <button 
+                                                    type="button" 
+                                                    className="bg-red-50 hover:bg-red-100 text-red-600 w-8 h-8 flex items-center justify-center rounded-xl transition-all duration-150 shadow-sm" 
+                                                    title="Eliminar" 
+                                                    onClick={() => eliminarRegistro(index)}
+                                                >
+                                                    🗑️
+                                                </button>
+                                            </span>
                                         </td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
-                    </div>
-
-                    <footer className="p-4 border-t border-gray-100 flex items-center justify-between text-xs text-gray-400 font-medium">
-                        <span>Registro de clasificación</span>
-                        <div className="flex gap-2">
-                            <button type="button" className="bg-[#49e619] text-slate-950 font-bold px-3 py-1.5 rounded-lg hover:bg-[#3cd110] transition-colors disabled:opacity-50">Anterior</button>
-                            <span className="bg-[#49e619] text-slate-950 font-bold w-8 h-8 flex items-center justify-center rounded-lg">1</span>
-                            <button type="button" className="bg-[#49e619] text-slate-950 font-bold px-3 py-1.5 rounded-lg hover:bg-[#3cd110] transition-colors disabled:opacity-50">Siguiente</button>
-                        </div>
-                    </footer>
+                    </section>
                 </section>
 
                 {/* MODAL DE REGISTRO */}
                 {modals.registro && (
-                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-                        <article className="bg-white rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-                            <header className="flex justify-between items-center px-6 py-4 border-b bg-gray-50">
+                    <span className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 block">
+                        <article className="bg-white rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
+                            <header className="flex justify-between items-center px-6 py-4 border-b bg-gray-50 shrink-0">
                                 <h2 className="text-lg font-bold text-gray-900">
-                                    {step === 1 ? "1. Clasificación de Huevos" : "2. Información General"}
+                                    {step === 1 ? "1. Clasificación de Huevos" : "2. Información General y Cierre"}
                                 </h2>
-                                <button className="text-gray-400 hover:text-gray-600 text-2xl" type="button" onClick={() => closeModal('registro')}>&times;</button>
+                                <button className="text-gray-400 hover:text-gray-600 text-2xl font-bold p-1" type="button" onClick={() => closeModal('registro')}>&times;</button>
                             </header>
 
-                            <form onSubmit={step === 2 ? handleSave : (e) => e.preventDefault()} className="p-6">
+                            <form onSubmit={step === 2 ? handleSave : (e) => e.preventDefault()} className="p-6 overflow-y-auto flex-1 space-y-5">
                                 {step === 1 && (
-                                    <section>
-                                        <div className="overflow-x-auto border border-gray-100 rounded-xl mb-4">
+                                    <section className="space-y-5">
+                                        <section className="overflow-x-auto border border-gray-150 rounded-2xl shadow-sm block">
                                             <table className="w-full text-left border-collapse">
                                                 <thead>
-                                                    <tr className="bg-slate-50 text-xs font-semibold text-gray-500 uppercase border-b">
-                                                        <th className="p-3">Tipo</th>
-                                                        <th className="p-3">Hoy</th>
-                                                        <th className="p-3">Ayer</th>
-                                                        <th className="p-3">Acum.</th>
-                                                        <th className="p-3">Precio</th>
-                                                        <th className="p-3 text-right">Subtotal</th>
+                                                    <tr className="bg-slate-50 text-xs font-bold text-gray-455 uppercase border-b border-gray-200">
+                                                        <th className="px-4 py-3 text-left">Tipo</th>
+                                                        <th className="px-4 py-3 text-center">Hoy (Uds)</th>
+                                                        <th className="px-4 py-3 text-center">Panales (Conv.)</th>
+                                                        <th className="px-4 py-3 text-center">Ayer (Uds)</th>
+                                                        <th className="px-4 py-3 text-center">Acum. (Uds)</th>
+                                                        <th className="px-4 py-3 text-center">Precio (Panal)</th>
+                                                        <th className="px-4 py-3 text-right">Subtotal</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody className="divide-y divide-gray-100 text-sm">
-                                                    {Object.keys(tableData).map(tipo => {
-                                                        const row = tableData[tipo];
+                                                    {CLASIFICACIONES.map(tipo => {
+                                                        const row = tableData[tipo] || { hoy: "", ayer: 0, precio: "" };
                                                         const hoy = parseInt(row.hoy) || 0;
-                                                        const acum = hoy + row.ayer;
-                                                        const sub = hoy * cleanNum(row.precio);
+                                                        const ayer = parseInt(row.ayer) || 0;
+                                                        const panalesHoy = hoy / 30;
+                                                        const acum = hoy + ayer;
+                                                        const sub = panalesHoy * cleanNum(row.precio);
 
                                                         return (
-                                                            <tr key={tipo} className="hover:bg-slate-50/50">
-                                                                <td className="p-3 font-bold text-gray-700">{tipo}</td>
-                                                                <td className="p-3">
+                                                            <tr key={tipo} className="hover:bg-slate-50/50 transition-colors">
+                                                                <td className="px-4 py-3 text-left font-bold text-gray-800">{tipo}</td>
+                                                                <td className="px-4 py-3 text-center">
                                                                     <input
                                                                         type="number"
-                                                                        className="w-20 p-1.5 border border-gray-300 rounded-lg text-center font-semibold"
+                                                                        className="w-20 p-1.5 border border-gray-300 rounded-lg text-center font-semibold focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none transition-all duration-150"
                                                                         value={row.hoy}
                                                                         min="0"
+                                                                        placeholder="0"
                                                                         onChange={(e) => handleTableChange(tipo, 'hoy', e.target.value)}
                                                                     />
                                                                 </td>
-                                                                <td className="p-3"><input type="number" className="w-20 p-1.5 bg-gray-100 border border-transparent rounded-lg text-center text-gray-500" value={row.ayer} readOnly /></td>
-                                                                <td className="p-3"><input type="number" className="w-20 p-1.5 bg-gray-100 border border-transparent rounded-lg text-center text-gray-500" value={acum} readOnly /></td>
-                                                                <td className="p-3">
+                                                                <td className="px-4 py-3 text-center">
+                                                                    {hoy > 0 ? (
+                                                                        <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-bold bg-green-50 text-green-700 border border-green-100">
+                                                                            {formatExactPanales(hoy)}
+                                                                        </span>
+                                                                    ) : (
+                                                                        <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-50 text-slate-400 border border-slate-100">
+                                                                            0 panales
+                                                                        </span>
+                                                                    )}
+                                                                </td>
+                                                                <td className="px-4 py-3 text-center">
+                                                                    <input type="number" className="w-16 p-1.5 bg-slate-50 border border-transparent rounded-lg text-center text-slate-500 font-semibold" value={ayer} readOnly />
+                                                                </td>
+                                                                <td className="px-4 py-3 text-center">
+                                                                    <input type="number" className="w-16 p-1.5 bg-slate-50 border border-transparent rounded-lg text-center text-slate-500 font-semibold" value={acum} readOnly />
+                                                                </td>
+                                                                <td className="px-4 py-3 text-center">
                                                                     <input
                                                                         type="text"
-                                                                        className="w-24 p-1.5 border border-gray-300 rounded-lg text-center font-semibold"
+                                                                        className="w-24 p-1.5 border border-gray-300 rounded-lg text-center font-semibold focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none transition-all duration-150"
                                                                         value={row.precio}
                                                                         onChange={(e) => handleTableChange(tipo, 'precio', e.target.value)}
                                                                         placeholder="$ 0"
                                                                     />
                                                                 </td>
-                                                                <td className="p-3 text-right font-bold text-slate-700">{formatCurrency(sub)}</td>
+                                                                <td className="px-4 py-3 text-right font-extrabold text-slate-900">{formatCurrency(sub)}</td>
                                                             </tr>
                                                         );
                                                     })}
                                                 </tbody>
                                             </table>
-                                        </div>
-                                        <footer className="flex justify-between items-center bg-green-50/50 rounded-xl p-4 mb-6 border border-green-100">
-                                            <p className="text-sm font-medium text-green-800">Pañales Totales: <span className="font-bold text-base">{totales.panales}</span></p>
-                                            <p className="text-sm font-medium text-green-800">Valor Total: <span className="font-extrabold text-xl text-green-700">{formatCurrency(totales.dinero)}</span></p>
-                                        </footer>
+                                        </section>
                                         
-                                        <button type="button" className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 rounded-xl transition-colors" onClick={handleContinuarPaso2}>
+                                        <section className="grid grid-cols-3 gap-4 bg-slate-50/60 rounded-2xl p-4 border border-gray-150 shadow-sm">
+                                            <span className="text-center border-r border-gray-200 block">
+                                                <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Unidades Totales</span>
+                                                <strong className="text-base font-black text-slate-800 mt-1 block">{totales.unidades} uds</strong>
+                                                <span className="text-[11px] text-gray-500 font-medium">({obtenerTextoDesglose(tableData)})</span>
+                                            </span>
+                                            <span className="text-center border-r border-gray-200 px-1 block">
+                                                <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Panales Totales</span>
+                                                <strong className="text-xs font-bold text-green-700 mt-1.5 block leading-tight">{formatExactPanales(totales.unidades)}</strong>
+                                            </span>
+                                            <span className="text-center block">
+                                                <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Valor Total</span>
+                                                <strong className="text-lg font-black text-green-600 mt-0.5 block">{formatCurrency(totales.dinero)}</strong>
+                                            </span>
+                                        </section>
+                                        
+                                        <button type="button" className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 rounded-xl transition-colors shadow-md" onClick={handleContinuarPaso2}>
                                             CONTINUAR &rarr;
                                         </button>
                                     </section>
                                 )}
 
                                 {step === 2 && (
-                                    <section>
-                                        <fieldset className="grid grid-cols-2 gap-4 border-none p-0 mb-6">
+                                    <section className="space-y-5">
+                                        <fieldset className="grid grid-cols-2 gap-4 border-none p-0">
                                             <label className="flex flex-col gap-1">
                                                 <span className="text-xs font-bold text-gray-600 uppercase">Consecutivo</span>
                                                 <input type="text" value={`REC-${String(obtenerSiguienteId()).padStart(3, '0')}`} readOnly className="p-2.5 bg-gray-100 border rounded-xl font-bold text-green-600 outline-none" />
@@ -369,23 +558,30 @@ export default function ClasificacionView() {
                                             </label>
                                             <label className="flex flex-col gap-1">
                                                 <span className="text-xs font-bold text-gray-600 uppercase">Galpón</span>
-                                                <input type="number" value={generalInfo.galpon} onChange={e => setGeneralInfo({ ...generalInfo, galpon: e.target.value })} placeholder="01" required className="p-2.5 border rounded-xl focus:ring-2 focus:ring-green-500 outline-none" />
+                                                <input type="text" value={generalInfo.galpon} onChange={e => setGeneralInfo({ ...generalInfo, galpon: e.target.value })} placeholder="Ej: Galpón 1" required className="p-2.5 border rounded-xl focus:ring-2 focus:ring-green-500 outline-none" />
                                             </label>
                                             <label className="flex flex-col gap-1">
+                                                <span className="text-xs font-bold text-gray-600 uppercase">Lote</span>
+                                                <input type="text" value={generalInfo.lote} onChange={e => setGeneralInfo({ ...generalInfo, lote: e.target.value })} placeholder="Ej: LOTE-A2" required className="p-2.5 border rounded-xl focus:ring-2 focus:ring-green-500 outline-none" />
+                                            </label>
+                                            <label className="flex flex-col gap-1 col-span-2">
                                                 <span className="text-xs font-bold text-gray-600 uppercase">Responsable</span>
                                                 <input type="text" value={generalInfo.responsable} onChange={e => setGeneralInfo({ ...generalInfo, responsable: e.target.value })} placeholder="Nombre Completo" required className="p-2.5 border rounded-xl focus:ring-2 focus:ring-green-500 outline-none" />
                                             </label>
-                                            <label className="flex flex-col gap-1 col-span-2">
-                                                <span className="text-xs font-bold text-gray-600 uppercase">Línea</span>
-                                                <input list="opciones-lineas" value={generalInfo.linea} onChange={e => setGeneralInfo({ ...generalInfo, linea: e.target.value })} placeholder="Selecciona o escribe la línea" required className="p-2.5 border rounded-xl focus:ring-2 focus:ring-green-500 outline-none" />
-                                                <datalist id="opciones-lineas">
-                                                    <option value="Hy-Line Brown" />
-                                                    <option value="Isa Brown" />
-                                                    <option value="Lohmann Brown" />
-                                                    <option value="Babcock" />
-                                                    <option value="Dekalb" />
-                                                </datalist>
-                                            </label>
+                                            
+                                            <span className="col-span-2 bg-slate-50 border border-gray-200 rounded-2xl p-4 space-y-2 block text-xs">
+                                                <span className="block text-gray-600">
+                                                    <strong className="font-bold text-slate-800 uppercase block mb-0.5">Producción Actual:</strong>
+                                                    Se ingresaron <strong className="text-slate-900">{totales.unidades} uds</strong> ({obtenerTextoDesglose(tableData)}).
+                                                </span>
+                                                <hr className="border-gray-200" />
+                                                <span className="block bg-amber-50/60 border border-amber-100 p-2.5 rounded-xl text-amber-900">
+                                                    <strong className="font-bold uppercase block mb-1">📦 Inventario de Unidades Sobrantes:</strong>
+                                                    Quedan <strong className="font-black text-amber-800">{totalSobrantesUnidades} unidades sueltas</strong> que no completaron panal de 30 y **se acumularán automáticamente para el día de mañana**.
+                                                    <span className="block font-medium text-amber-700/90 mt-0.5">Desglose: ({obtenerTextoSobrantes(sobrantesPorTipo)})</span>
+                                                </span>
+                                            </span>
+
                                             <label className="flex flex-col gap-1 col-span-2">
                                                 <span className="text-xs font-bold text-gray-600 uppercase">Observaciones</span>
                                                 <textarea rows="2" value={generalInfo.observaciones} onChange={e => setGeneralInfo({ ...generalInfo, observaciones: e.target.value })} className="p-2.5 border rounded-xl focus:ring-2 focus:ring-green-500 outline-none resize-none"></textarea>
@@ -393,93 +589,105 @@ export default function ClasificacionView() {
                                         </fieldset>
                                         <footer className="flex justify-between items-center border-t pt-4">
                                             <button type="button" className="text-gray-500 hover:text-gray-700 font-bold text-sm" onClick={() => setStep(1)}>&larr; Volver</button>
-                                            <div className="flex gap-3">
+                                            <span className="flex gap-3">
                                                 <button type="button" className="bg-red-50 hover:bg-red-100 text-red-600 font-bold py-2.5 px-4 rounded-xl transition-colors text-sm" onClick={handleLimpiarFormulario}>
                                                     BORRAR TODO
                                                 </button>
                                                 <button type="submit" className="bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 px-6 rounded-xl transition-colors shadow-md">
                                                     FINALIZAR Y GUARDAR
                                                 </button>
-                                            </div>
+                                            </span>
                                         </footer>
                                     </section>
                                 )}
                              </form>
                         </article>
-                    </div>
+                    </span>
                 )}
 
-                {/* MODALES STATUS (EXITO/BORRADO) */}
+                {/* MODALES STATUS */}
                 {modals.exito && (
-                    <div className="fixed inset-0 bg-slate-950/90 flex items-center justify-center p-4 z-50 animate-fade-in">
+                    <span className="fixed inset-0 bg-slate-950/90 flex items-center justify-center p-4 z-50 block">
                         <article className="text-center text-white max-w-sm flex flex-col items-center">
-                            <span className="text-4xl text-green-500 border-4 border-green-500 w-20 h-20 flex items-center justify-center rounded-full font-bold mb-4 animate-bounce">✓</span>
+                            <span className="text-4xl text-green-500 border-4 border-green-500 w-20 h-20 flex items-center justify-center rounded-full font-bold mb-4">✓</span>
                             <h1 className="text-2xl font-black tracking-wide mb-2">¡REGISTRO EXITOSO!</h1>
                             <button type="button" className="w-full bg-green-500 text-slate-950 font-black py-3 px-8 rounded-xl mt-6 hover:bg-green-400 transition-colors" onClick={() => closeModal('exito')}>CONTINUAR</button>
                         </article>
-                    </div>
+                    </span>
                 )}
 
                 {modals.borrado && (
-                    <div className="fixed inset-0 bg-slate-950/90 flex items-center justify-center p-4 z-50 animate-fade-in">
+                    <span className="fixed inset-0 bg-slate-950/90 flex items-center justify-center p-4 z-50 block">
                         <article className="text-center text-white max-w-sm flex flex-col items-center">
-                            <span className="text-4xl text-red-500 border-4 border-red-500 w-20 h-20 flex items-center justify-center rounded-full font-bold mb-4 animate-bounce">✕</span>
+                            <span className="text-4xl text-red-500 border-4 border-red-500 w-20 h-20 flex items-center justify-center rounded-full font-bold mb-4">✕</span>
                             <h1 className="text-2xl font-black tracking-wide mb-2">¡FORMULARIO LIMPIADO!</h1>
-                            <p className="text-gray-400 text-sm">Los datos actuales han sido borrados de los campos correctamente.</p>
                             <button type="button" className="w-full bg-red-600 text-white font-black py-3 px-8 rounded-xl mt-6 hover:bg-red-500 transition-colors" onClick={() => closeModal('borrado')}>CONTINUAR</button>
                         </article>
-                    </div>
+                    </span>
                 )}
 
                 {/* MODAL DETALLE */}
                 {modals.detalle && selectedRecordIndex !== null && (
-                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
-                        <article className="bg-white rounded-3xl w-full max-w-xl overflow-hidden shadow-2xl">
-                            <header className="flex justify-between items-center px-6 py-4 border-b bg-gray-50">
+                    <span className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 block">
+                        <article className="bg-white rounded-3xl w-full max-w-xl overflow-hidden shadow-2xl max-h-[90vh] flex flex-col">
+                            <header className="flex justify-between items-center px-6 py-4 border-b bg-gray-50 shrink-0">
                                 <h2 className="text-lg font-bold text-gray-900">Detalle de Producción</h2>
-                                <button className="text-gray-400 hover:text-gray-600 text-2xl" type="button" onClick={() => closeModal('detalle')}>&times;</button>
+                                <button className="text-gray-400 hover:text-gray-600 text-2xl font-bold p-1" type="button" onClick={() => closeModal('detalle')}>&times;</button>
                             </header>
                             {(() => {
                                 const r = historial[selectedRecordIndex];
                                 if (!r) return null;
                                 return (
-                                    <section className="p-6 space-y-5">
-                                        <div className="grid grid-cols-2 gap-4 text-sm border-b pb-4">
-                                            <p className="text-gray-500 font-medium">ID: <span className="font-bold text-gray-900 block text-base">{r.id}</span></p>
-                                            <p className="text-gray-500 font-medium">FECHA: <span className="font-bold text-gray-900 block text-base">{r.fecha}</span></p>
-                                            <p className="text-gray-500 font-medium">LÍNEA: <span className="font-bold text-gray-800 block">{r.linea}</span></p>
-                                            <p className="text-gray-500 font-medium">GALPÓN: <span className="font-bold text-gray-800 block">N° {r.galpon}</span></p>
-                                            <p className="text-gray-500 font-medium col-span-2">RESPONSABLE: <span className="font-bold text-gray-800 block">{r.responsable}</span></p>
-                                        </div>
+                                    <section className="p-6 overflow-y-auto flex-1 space-y-5">
+                                        <span className="grid grid-cols-2 gap-4 text-sm border-b pb-4 block">
+                                            <span className="text-gray-500 font-medium block">ID: <span className="font-bold text-gray-900 block text-base">{r.id}</span></span>
+                                            <span className="text-gray-500 font-medium block">FECHA: <span className="font-bold text-gray-900 block text-base">{r.fecha}</span></span>
+                                            <span className="text-gray-500 font-medium block">GALPÓN: <span className="font-bold text-gray-800 block">{r.galpon}</span></span>
+                                            <span className="text-gray-500 font-medium block">LOTE: <span className="font-bold text-gray-800 block">{r.lote || "N/A"}</span></span>
+                                            <span className="text-gray-500 font-medium col-span-2 block">RESPONSABLE: <span className="font-bold text-gray-800 block">{r.responsable || "N/A"}</span></span>
+                                        </span>
 
-                                        <div>
+                                        <section>
                                             <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2.5">Producción por Tipo</h3>
-                                            <div className="bg-slate-50 border border-gray-100 rounded-2xl p-4 grid grid-cols-5 gap-2 text-center">
-                                                {r.detalles && Object.keys(r.detalles).map((tipo) => {
-                                                    const cantidad = r.detalles[tipo]?.hoy || 0;
+                                            <span className="bg-slate-50 border border-gray-100 rounded-2xl p-4 grid grid-cols-3 sm:grid-cols-6 gap-2 text-center block">
+                                                {CLASIFICACIONES.map((tipo) => {
+                                                    const det = r.detalles?.[tipo];
+                                                    const hoy = det?.hoy || 0;
                                                     return (
-                                                        <div key={tipo} className="bg-white border border-gray-200/60 rounded-xl p-2 shadow-sm">
+                                                        <span key={tipo} className="bg-white border border-gray-200/60 rounded-xl p-2 shadow-sm flex flex-col justify-between block">
                                                             <span className="block text-xs font-black text-slate-400 uppercase">{tipo}</span>
-                                                            <span className="block text-lg font-extrabold text-slate-800 mt-0.5">{cantidad}</span>
-                                                            <span className="block text-[10px] text-gray-400 font-medium">uds</span>
-                                                        </div>
+                                                            <span className="block text-base font-extrabold text-slate-800 mt-1">{hoy} <span className="text-[10px] text-gray-400 font-normal">uds</span></span>
+                                                            <span className="block text-xs font-bold text-green-600 mt-1">{formatExactPanales(hoy)}</span>
+                                                        </span>
                                                     );
                                                 })}
-                                            </div>
-                                        </div>
+                                            </span>
+                                        </section>
 
-                                        <div className="grid grid-cols-2 gap-4 bg-green-50/50 border border-green-100 rounded-2xl p-4">
-                                            <div>
-                                                <span className="block text-xs font-bold text-green-800 uppercase tracking-wide">Pañales Totales</span>
-                                                <span className="text-2xl font-black text-green-900">{r.panales} <span className="text-sm font-normal text-green-700">uds</span></span>
-                                            </div>
-                                            <div className="text-right">
+                                        <span className="grid grid-cols-3 gap-2 bg-green-50/50 border border-green-100 rounded-2xl p-4 block">
+                                            <span className="block">
+                                                <span className="block text-xs font-bold text-green-800 uppercase tracking-wide">Unidades Totales</span>
+                                                <span className="text-xl font-black text-green-900">{getUnidades(r)} <span className="text-xs font-normal text-green-700">uds</span></span>
+                                                <span className="block text-[11px] font-medium text-gray-600 mt-0.5 leading-tight">
+                                                    ({obtenerTextoDesglose(r.detalles || {})})
+                                                </span>
+                                            </span>
+                                            <span className="block">
+                                                <span className="block text-xs font-bold text-green-800 uppercase tracking-wide">Panales Totales</span>
+                                                <span className="text-xl font-black text-green-900">{formatExactPanales(getUnidades(r))}</span>
+                                            </span>
+                                            <span className="text-right block">
                                                 <span className="block text-xs font-bold text-green-800 uppercase tracking-wide">Valor Total</span>
-                                                <span className="text-2xl font-black text-green-700">{r.total}</span>
-                                            </div>
-                                        </div>
+                                                <span className="text-xl font-black text-green-700">{r.total}</span>
+                                            </span>
+                                        </span>
 
-                                        <blockquote className="bg-gray-50 border-l-4 border-green-500 p-3 rounded-r-xl text-xs italic text-gray-600">
+                                        <blockquote className="bg-amber-50/60 border-l-4 border-amber-500 p-3 rounded-r-xl text-xs text-amber-950">
+                                            <strong className="block text-amber-900 font-bold mb-1 uppercase tracking-wider">Sobrantes Transferidos al Día Siguiente:</strong>
+                                            Se guardaron {r.totalSobrantes || 0} unidades totales: ({obtenerTextoSobrantes(r.sobrantesParaManana)}).
+                                        </blockquote>
+
+                                        <blockquote className="bg-gray-50 border-l-4 border-slate-400 p-3 rounded-r-xl text-xs italic text-gray-600">
                                             <strong className="block text-gray-700 not-italic font-bold mb-1 uppercase tracking-wider">Observaciones:</strong>
                                             "{r.obs}"
                                         </blockquote>
@@ -487,9 +695,9 @@ export default function ClasificacionView() {
                                 );
                             })()}
                         </article>
-                    </div>
+                    </span>
                 )}
             </main>
-        </div>
+        </span>
     );
-}7
+} 
