@@ -39,7 +39,10 @@ const DashboardProduccion = () => {
   const [lote, setLote] = useState("");
   const [lineaGenetica, setLineaGenetica] = useState("");
 
-  const [produccionesPendientes, setProduccionesPendientes] = useState([]);
+  const [produccionesPendientes, setProduccionesPendientes] = useState(() => {
+    const saved = localStorage.getItem("produccionesPendientes");
+    return saved ? JSON.parse(saved) : [];
+  });
   const [produccionEnEdicion, setProduccionEnEdicion] = useState(null);
 
   const [clasificacionData, setClasificacionData] = useState({
@@ -189,6 +192,10 @@ const DashboardProduccion = () => {
     }
   }, [isModalRecoleccionOpen, isModalAlimentoOpen, isHistorialOpen]);
 
+  useEffect(() => {
+    localStorage.setItem("produccionesPendientes", JSON.stringify(produccionesPendientes));
+  }, [produccionesPendientes]);
+
   // Exportar historial a CSV
   const handleExportHistorial = () => {
     if (!historial || historial.length === 0) return;
@@ -281,7 +288,7 @@ const DashboardProduccion = () => {
 
           <button
             onClick={() => setIsModalRecoleccionOpen(true)}
-            className="bg-primary hover:bg-[#3dbd14]  text-white px-5 py-2 rounded-xl font-bold shadow-xl transition-all flex items-center gap-2"
+            className="bg-primary hover:bg-[#3dbd14]  text-black px-5 py-2 rounded-xl font-bold shadow-xl transition-all flex items-center gap-2"
           >
             <span className="material-symbols-outlined text-base">
               add_circle
@@ -477,7 +484,7 @@ const DashboardProduccion = () => {
                               <button
                                 type="button"
                                 onClick={() => clasificarProduccion(item)}
-                                className="inline-flex items-center justify-center min-w-[110px] h-10 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-semibold transition-all"
+                                className="inline-flex items-center justify-center min-w-[110px] h-10 bg-[#3dbd14] hover:bg-[#3dbd14] text-black rounded-lg text-sm font-semibold transition-all"
                               >
                                 Clasificar
                               </button>
@@ -512,39 +519,7 @@ const DashboardProduccion = () => {
           </section>
 
           <aside className="space-y-8">
-            <aside className="bg-primary hover:bg-[#3dbd14]  text-white p-5 rounded-2xl shadow-lg shadow-primary/20 flex flex-col justify-between min-h-[170px]">
-              <header className="flex items-center gap-2 mb-4">
-                <span className="material-symbols-outlined text-lg">
-                  grid_on
-                </span>
-                <h4 className="font-bold text-sm uppercase tracking-wider text-white/95">
-                  Conversión a Panales
-                </h4>
-              </header>
-
-              <dl className="space-y-4 my-auto">
-                <section className="flex justify-between items-center border-b border-white/10 pb-2.5">
-                  <dt className="text-white/80 text-sm font-medium">
-                    Total Huevos
-                  </dt>
-                  <dd className="text-2xl font-black">
-                    {totalHuevos.toLocaleString()}
-                  </dd>
-                </section>
-                <section className="flex justify-between items-center border-b border-white/10 pb-2.5">
-                  <dt className="text-white/80 text-sm font-medium">
-                    Cubetas (30 und)
-                  </dt>
-                  <dd className="text-2xl font-black">{cubetas}</dd>
-                </section>
-                <section className="flex justify-between items-center">
-                  <dt className="text-white/80 text-sm font-medium">
-                    Huevos Sueltos
-                  </dt>
-                  <dd className="text-2xl font-black">{sueltos}</dd>
-                </section>
-              </dl>
-            </aside>
+            
 
             <article className="bg-white dark:bg-zinc-900 p-6 rounded-3xl border border-slate-100/80 dark:border-zinc-800/80 shadow-sm">
               <header className="flex items-center gap-2 mb-6">
@@ -861,7 +836,7 @@ const DashboardProduccion = () => {
               <div className="flex gap-4 pt-4 border-t border-slate-50 dark:border-zinc-800">
                 <button
                   type="submit"
-                  className="flex-1 bg-[#3dbd14] text-white font-bold py-3 rounded-xl hover:bg-[#278d5c] transition-all cursor-pointer text-center text-sm shadow-sm border-none"
+                  className="flex-1 bg-primary hover:bg-[#3dbd14]  text-black font-bold py-3 rounded-xl  transition-all cursor-pointer text-center text-sm shadow-sm border-none"
                 >
                   {produccionEnEdicion
                     ? "Actualizar Registro"
@@ -870,7 +845,7 @@ const DashboardProduccion = () => {
                 <button
                   type="button"
                   onClick={handleLimpiarFormulario}
-                  className="flex-1 border border-[#2ea66d] text-[#2ea66d] font-bold py-3 rounded-xl hover:bg-emerald-50/50 dark:hover:bg-emerald-950/20 transition-all cursor-pointer text-center text-sm bg-transparent"
+                  className="flex-1 border border-[#3dbd14] text-black font-bold py-3 rounded-xl hover:bg-emerald-50/50 dark:hover:bg-emerald-950/20 transition-all cursor-pointer text-center text-sm bg-transparent"
                 >
                   Limpiar Formulario
                 </button>
@@ -947,7 +922,7 @@ const DashboardProduccion = () => {
                 <menu className="flex gap-4 mt-4 p-0">
                   <button
                     type="submit"
-                    className="flex-1 bg-[#2ea66d] text-white font-bold py-4 rounded-xl hover:bg-[#278d5c] transition-all cursor-pointer shadow-lg shadow-primary/20 border-none"
+                    className="flex-1 bg-[#3dbd14] text-black font-bold py-4 rounded-xl hover:bg-[#3dbd14] transition-all cursor-pointer shadow-lg shadow-primary/20 border-none"
                   >
                     Registrar Entrada
                   </button>
