@@ -3,18 +3,18 @@
 import React, { useState, useEffect } from 'react';
 
 const formatDots = (num) => {
-    if (!num) return "";
-    let val = num.toString().replace(/\D/g, "");
-    return val.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  if (!num) return "";
+  let val = num.toString().replace(/\D/g, "");
+  return val.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 };
 
 const cleanNum = (str) => {
-    if (!str) return 0;
-    return parseFloat(str.toString().replace(/\./g, '').replace('$', '').trim()) || 0;
+  if (!str) return 0;
+  return parseFloat(str.toString().replace(/\./g, '').replace('$', '').trim()) || 0;
 };
 
 const formatCurrency = (val) => new Intl.NumberFormat('es-CO', {
-    style: 'currency', currency: 'COP', minimumFractionDigits: 0
+  style: 'currency', currency: 'COP', minimumFractionDigits: 0
 }).format(val);
 
 const formatExactPanales = (unidades) => {
@@ -110,15 +110,47 @@ export default function ClasificacionView() {
         if (name === 'registro') setStep(1);
     };
 
-    const obtenerSiguienteId = () => {
-        if (historial.length === 0) return 1;
-        const ultimoId = historial[historial.length - 1].id;
-        const num = parseInt(ultimoId.split('-')[1]);
-        return isNaN(num) ? historial.length + 1 : num + 1;
-    };
+const initialTableData = {
+  C: { hoy: "", ayer: 0, precio: "" },
+  B: { hoy: "", ayer: 0, precio: "" },
+  A: { hoy: "", ayer: 0, precio: "" },
+  AA: { hoy: "", ayer: 0, precio: "" },
+  AAA: { hoy: "", ayer: 0, precio: "" },
+  Jumbo: { hoy: "", ayer: 0, precio: "" }
+};
 
-    const handleLimpiarFormulario = () => {
-        setTableData(initialTableData);
+export default function ClasificacionView() {
+  const [modals, setModals] = useState({
+    registro: false,
+    exito: false,
+    borrado: false,
+    detalle: false
+  });
+
+  const [step, setStep] = useState(1);
+  const [tableData, setTableData] = useState(initialTableData);
+  const [generalInfo, setGeneralInfo] = useState({
+    fecha: new Date().toISOString().split('T')[0],
+    galpon: "",
+    lote: "",
+    responsable: "",
+    observaciones: ""
+  });
+
+  const [historial, setHistorial] = useState([]);
+  const [filtroGalpon, setFiltroGalpon] = useState("");
+  const [selectedRecordIndex, setSelectedRecordIndex] = useState(null);
+
+  const [produccionOrigen, setProduccionOrigen] = useState(null);
+  const [produccionesPendientes, setProduccionesPendientes] = useState([]);
+
+  useEffect(() => {
+    // Cargar la producción seleccionada desde localStorage
+    const selectedStr = localStorage.getItem("produccionSeleccionada");
+    if (selectedStr) {
+      try {
+        const selected = JSON.parse(selectedStr);
+        setProduccionOrigen(selected);
         setGeneralInfo({
             fecha: new Date().toISOString().split('T')[0],
             galpon: "",
@@ -246,24 +278,156 @@ export default function ClasificacionView() {
             responsable: "",
             observaciones: ""
         });
-        setStep(1);
-    };
+      } else {
+        setTableData(prev => {
+          const limpiado = { ...prev };
+          CLASIFICACIONES.forEach(tipo => {
+            limpiado[tipo] = { ...limpiado[tipo], ayer: 0 };
+          });
+          return limpiado;
+        });
+      }
+    }
+  }, [generalInfo.galpon, historial]);
 
-    const verDetalle = (index) => {
-        setSelectedRecordIndex(index);
-        openModal('detalle');
-    };
+  const openModal = (name) => setModals(prev => ({ ...prev, [name]: true }));
+  const closeModal = (name) => {
+    setModals(prev => ({ ...prev, [name]: false }));
+    if (name === 'registro') {
+      setStep(1);
+      localStorage.removeItem("produccionSeleccionada");
+      setProduccionOrigen(null);
+    }
+  };
 
-    const eliminarRegistro = (index) => {
-        if (window.confirm("¿Estás seguro de eliminar este registro permanentemente?")) {
-            setHistorial(prev => {
-                const copy = [...prev];
-                copy.splice(index, 1);
-                localStorage.setItem('avisena_storage', JSON.stringify(copy));
-                return copy;
-            });
-            if (selectedRecordIndex === index) closeModal('detalle');
-        }
+  const obtenerSiguienteId = () => {
+    if (historial.length === 0) return 1;
+    const ultimoId = historial[historial.length - 1].id;
+    const num = parseInt(ultimoId.split('-')[1]);
+    return isNaN(num) ? historial.length + 1 : num + 1;
+  };
+
+  const handleLimpiarFormulario = () => {
+    setTableData(initialTableData);
+    setGeneralInfo({
+      fecha: new Date().toISOString().split('T')[0],
+      galpon: "",
+      lote: "",
+      responsable: "",
+      observaciones: ""
+    });
+    closeModal('registro');
+    openModal('borrado');
+  };
+
+  const handleTableChange = (tipo, field, value) => {
+    setTableData(prev => ({
+      ...prev,
+      [tipo]: {
+        ...prev[tipo],
+        [field]: field === 'precio'
+          ? formatDots(value)
+          : (value === "" ? "" : parseInt(value) || 0)
+      }
+    }));
+  };
+
+  const totales = CLASIFICACIONES.reduce((acc, key) => {
+    const row = tableData[key];
+    if (!row) return acc;
+
+    const hoy = parseInt(row.hoy) || 0;
+    const precio = cleanNum(row.precio);
+    const panalesHoy = hoy / 30;
+    const sub = panalesHoy * precio;
+
+    acc.unidades += hoy;
+    acc.panales += panalesHoy;
+    acc.dinero += sub;
+    return acc;
+  }, { unidades: 0, panales: 0, dinero: 0 });
+
+  const sobrantesPorTipo = CLASIFICACIONES.reduce((acc, tipo) => {
+    const row = tableData[tipo];
+    if (row) {
+      const hoy = parseInt(row.hoy) || 0;
+      const ayer = parseInt(row.ayer) || 0;
+      const totalAcumulado = hoy + ayer;
+      acc[tipo] = totalAcumulado % 30;
+    } else {
+      acc[tipo] = 0;
+    }
+    return acc;
+  }, {});
+
+  const totalSobrantesUnidades = Object.values(sobrantesPorTipo).reduce((a, b) => a + b, 0);
+
+  const obtenerTextoDesglose = (data) => {
+    if (!data) return "Ninguno";
+    return CLASIFICACIONES
+      .map(tipo => {
+        const row = data[tipo];
+        if (!row) return null;
+        const cant = parseInt(row.hoy) || 0;
+        return cant > 0 ? `${cant} ${tipo}` : null;
+      })
+      .filter(Boolean)
+      .join(', ') || "Ninguno";
+  };
+
+  const obtenerTextoSobrantes = (dataSobrantes) => {
+    if (!dataSobrantes) return "Ninguno";
+    return CLASIFICACIONES
+      .map(tipo => {
+        const cant = dataSobrantes[tipo] || 0;
+        return cant > 0 ? `${cant} ${tipo}` : null;
+      })
+      .filter(Boolean)
+      .join(', ') || "Ninguno";
+  };
+
+  const handleContinuarPaso2 = () => {
+    if (totales.unidades <= 0) {
+      alert('Por favor, ingrese cantidades en la recolección antes de continuar.');
+      return;
+    }
+    if (produccionOrigen && totales.unidades !== Number(produccionOrigen.huevosBuenos)) {
+      alert(`La cantidad total de huevos clasificados (${totales.unidades}) debe ser exactamente igual a los huevos buenos recolectados (${produccionOrigen.huevosBuenos}).`);
+      return;
+    }
+    setStep(2);
+  };
+
+  const handleSave = (e) => {
+    e.preventDefault();
+
+    if (produccionOrigen && totales.unidades !== Number(produccionOrigen.huevosBuenos)) {
+      alert(`Error: La cantidad total de huevos clasificados (${totales.unidades}) no coincide con los huevos buenos recolectados (${produccionOrigen.huevosBuenos}).`);
+      return;
+    }
+
+    const detallesNormalizados = {};
+    CLASIFICACIONES.forEach(tipo => {
+      detallesNormalizados[tipo] = {
+        hoy: parseInt(tableData[tipo].hoy) || 0,
+        ayer: parseInt(tableData[tipo].ayer) || 0,
+        precio: tableData[tipo].precio || ""
+      };
+    });
+
+    const registro = {
+      id: `REC-${String(obtenerSiguienteId()).padStart(3, '0')}`,
+      fecha: generalInfo.fecha,
+      galpon: generalInfo.galpon,
+      lote: generalInfo.lote || "N/A",
+      responsable: generalInfo.responsable,
+      total: formatCurrency(totales.dinero),
+      unidades: totales.unidades,
+      panales: totales.panales,
+      obs: generalInfo.observaciones || "Sin observaciones",
+      detalles: detallesNormalizados,
+      sobrantesParaManana: { ...sobrantesPorTipo },
+      totalSobrantes: totalSobrantesUnidades
     };
 
     const handleMandarAFinanzas = (reg) => {
