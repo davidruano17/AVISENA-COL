@@ -100,7 +100,17 @@ export default function TratamientoView() {
             <h1 className="text-4xl font-black mb-2 text-slate-900 dark:text-white">Gestión de Tratamientos</h1>
             <p className="text-slate-500 dark:text-slate-400">Registro y seguimiento de tratamientos aplicados.</p>
           </div>
+                    <button
+                            onClick={() => {
+                              setDefaultFormData(null);
+                              setMostrarFormulario(true);
+                            }}
+                            className="flex items-center justify-center gap-2 rounded-lg h-14 px-8 min-w-[220px] bg-primary hover:bg-[#3dbd14] text-black text-sm font-black shadow-lg shadow-primary/20 active:scale-[0.98] transition-all border-none cursor-pointer"
+                          >
+                            Agregar Nuevo Tratamiento
+                    </button>
         </section>
+        
 
         {notificacion && (
           <article className="fixed bottom-4 right-4 bg-emerald-500 text-white px-6 py-4 rounded-lg shadow-lg animate-pulse z-40">
