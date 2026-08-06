@@ -2,11 +2,11 @@
 
 import jsPDF from "jspdf";
 import { useState, useEffect } from "react";
-import FormMortalidad from "@/app/components/FormMortalidad";
-import EstadisticasMortalidad from "@/app/components/EstadisticasMortalidad";
-import ModalEditarMortalidad from "@/app/components/ModalEditarMortalidad";
-import ModalEliminarMortalidad from "@/app/components/ModalEliminarMortalidad";
-import TablaMortalidad from "@/app/components/TablaMortalidad";
+import FormMortalidad from "../../components/FormMortalidad";
+import EstadisticasMortalidad from "../../components/EstadisticasMortalidad";
+import ModalEditarMortalidad from "../../components/ModalEditarMortalidad";
+import ModalEliminarMortalidad from "../../components/ModalEliminarMortalidad";
+import TablaMortalidad from "../../components/TablaMortalidad";
 
 export default function MortalidadView() {
   const [modalEditarAbierto, setModalEditarAbierto] = useState(false);

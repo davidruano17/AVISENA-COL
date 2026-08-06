@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import FiltrosGestionUsuarios from "@/app/components/FiltrosGestionUsuarios";
-import FormGestionUsuarios from "@/app/components/FormGestionUsuarios";
-import TablaGestionUsuarios from "@/app/components/TablaGestionUsuarios";
-import RolesGestionUsuarios from "@/app/components/RolesGestionUsuarios";
-import ModalEditarUsuario from "@/app/components/ModalEditarUsuario";
-import ModalEliminarUsuario from "@/app/components/ModalEliminarUsuario";
+import FiltrosGestionUsuarios from "../../components/FiltrosGestionUsuarios";
+import FormGestionUsuarios from "../../components/FormGestionUsuarios";
+import TablaGestionUsuarios from "../../components/TablaGestionUsuarios";
+import RolesGestionUsuarios from "../../components/RolesGestionUsuarios";
+import ModalEditarUsuario from "../../components/ModalEditarUsuario";
+import ModalEliminarUsuario from "../../components/ModalEliminarUsuario";
 
 export default function GestionUsuariosPage() {
   const [usuarios, setUsuarios] = useState([]);
