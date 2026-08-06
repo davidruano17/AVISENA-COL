@@ -75,7 +75,10 @@ export default function Forminiciosesion() {
                             onClick={togglePassword}
                             className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary text-xl"
                         >
-                            {showPassword ? 'visibility' : 'visibility_off'}
+                                <span className="material-symbols-outlined text-base select-none">
+                                    {showPassword ? "visibility_off" : "visibility"}
+                                </span>
+
                         </button>
                     </aside>
                 </section>

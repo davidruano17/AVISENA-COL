@@ -1,5 +1,5 @@
 
-export default function Header() {
+export default function HeaderInicioSesion() {
   return (
     <section>
       <header
