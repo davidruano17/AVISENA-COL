@@ -43,9 +43,10 @@ console.log(isUsersActive);
   '/profile': 'Mi Perfil',
   '/notificaciones': 'Notificaciones',
   '/configuracion': 'Configuración',
-  '/lotes': 'Administrar lotes',
+  '/galpones': 'Administrar galpones',
    '/dashboard': 'Inicio',
    '/finanzas': 'Finanzas',
+   '/tratamiento': 'Tratamiento',
 };
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -180,9 +181,9 @@ console.log(isUsersActive);
               <span className={`transition-opacity duration-200 whitespace-nowrap ${isSidebarCollapsed ? 'hidden' : 'block'}`}>Gestión de Usuarios</span>
             </NavLink>
             )}
-            <NavLink to="/lotes" className={({ isActive }) => `flex items-center h-12 rounded-lg text-slate-600 dark:text-[#becbb3] hover:bg-[#f1f5f9] dark:hover:bg-[#162035] hover:text-slate-900 dark:hover:text-white transition-all duration-200 w-full cursor-pointer box-border no-underline ${isSidebarCollapsed ? 'justify-center px-0' : 'gap-4 px-4'} ${isActive ? 'bg-[#f1f5f9] dark:bg-[#162035] text-[#49e619] dark:text-white' : ''}`}>
+            <NavLink to="/galpones" className={({ isActive }) => `flex items-center h-12 rounded-lg text-slate-600 dark:text-[#becbb3] hover:bg-[#f1f5f9] dark:hover:bg-[#162035] hover:text-slate-900 dark:hover:text-white transition-all duration-200 w-full cursor-pointer box-border no-underline ${isSidebarCollapsed ? 'justify-center px-0' : 'gap-4 px-4'} ${isActive ? 'bg-[#f1f5f9] dark:bg-[#162035] text-[#49e619] dark:text-white' : ''}`}>
               <Users className="w-5 h-5 shrink-0" />
-              <span className={`transition-opacity duration-200 whitespace-nowrap ${isSidebarCollapsed ? 'hidden' : 'block'}`}>Administrar lotes</span>
+              <span className={`transition-opacity duration-200 whitespace-nowrap ${isSidebarCollapsed ? 'hidden' : 'block'}`}>Administrar galpones</span>
             </NavLink>
 
             <section className="dropdown-container">
@@ -201,6 +202,7 @@ console.log(isUsersActive);
                   <Link to="/registro_clasificacion" className="text-[12px] font-medium text-[#64748b] dark:text-[#becbb3] text-left no-underline transition-colors duration-200 hover:text-primary">Clasificación Huevos</Link>
                   <Link to="/mortalidad" className="text-[12px] font-medium text-[#64748b] dark:text-[#becbb3] text-left no-underline transition-colors duration-200 hover:text-primary">Mortalidad</Link>
                   <Link to="/morbilidad" className="text-[12px] font-medium text-[#64748b] dark:text-[#becbb3] text-left no-underline transition-colors duration-200 hover:text-primary">Morbilidad</Link>
+                  <Link to="/tratamiento" className="text-[12px] font-medium text-[#64748b] dark:text-[#becbb3] text-left no-underline transition-colors duration-200 hover:text-primary">Tratamiento</Link>
                 </nav>
               )}
             </section>
