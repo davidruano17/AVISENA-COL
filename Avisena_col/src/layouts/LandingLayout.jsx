@@ -1,13 +1,14 @@
 import { Outlet, Link } from 'react-router-dom';
-import logoSena from '../assets/images/logo-sena-verde-complementario-svg-2022.svg';
-import gallinaBaner from '../assets/images/gallina_baner.jpg';
-import iconoproduccion from '../assets/images/icons8-gráfico-combinado-50.png';
-import iconoclasificacion from '../assets/images/icons8-test-fallido-50.png';
-import iconomortalidad from '../assets/images/icons8-corazón-con-pulso-50.png';
-import iconomorbilidad from '../assets/images/icons8-alimentando-pollo-50.png';
-import iconocorreo from '../assets/images/correo.png';
-import iconocompartir from '../assets/images/compartir.png';
-import iconoglobal from '../assets/images/internet.png';
+
+const logoSena = '/assets/images/logo-sena-verde-complementario-svg-2022.svg';
+const gallinaBaner = '/assets/images/gallina_baner.jpg';
+const iconoproduccion = '/assets/images/icons8-gráfico-combinado-50.png';
+const iconoclasificacion = '/assets/images/icons8-test-fallido-50.png';
+const iconomortalidad = '/assets/images/icons8-corazón-con-pulso-50.png';
+const iconomorbilidad = '/assets/images/icons8-alimentando-pollo-50.png';
+const iconocorreo = '/assets/images/correo.png';
+const iconocompartir = '/assets/images/compartir.png';
+const iconoglobal = '/assets/images/internet.png';
 
 
 

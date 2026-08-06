@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
-import gallinaBaner from '../assets/images/gallina_baner.jpg';
+
+const gallinaBaner = '/assets/images/gallina_baner.jpg';
 
 export default function HomeView() {
   return (

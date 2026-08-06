@@ -13,7 +13,8 @@ import {
   LogOut,
   ChevronRight
 } from 'lucide-react';
-import logoSena from '../assets/images/logo-sena-verde-complementario-svg-2022.svg';
+
+const logoSena = '/assets/images/logo-sena-verde-complementario-svg-2022.svg';
 
 
 export default function DashboardLayout() {
