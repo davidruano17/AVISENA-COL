@@ -29,11 +29,11 @@ const DashboardProduccion = () => {
 
   // Formulario Recolección
   const [fechaRecoleccion, setFechaRecoleccion] = useState("2026-05-28");
-  const [edadSemanasRecoleccion, setEdadSemanasRecoleccion] = useState("22");
+  const [edadSemanasRecoleccion, setEdadSemanasRecoleccion] = useState("");
   const [nombreTrabajador, setNombreTrabajador] = useState("John Doe");
   const [galponOrigen, setGalponOrigen] = useState("Galpón A - Ponedoras");
-  const [huevosBuenos, setHuevosBuenos] = useState("1220");
-  const [huevosRotosInput, setHuevosRotosInput] = useState("20");
+  const [huevosBuenos, setHuevosBuenos] = useState("0");
+  const [huevosRotosInput, setHuevosRotosInput] = useState("0");
   const [descarte, setDescarte] = useState("0");
   const [notas, setNotas] = useState("");
   const [lote, setLote] = useState("");
@@ -92,7 +92,7 @@ const DashboardProduccion = () => {
   const sueltos = totalHuevos % 30;
   const fcrScore =
     totalHuevos > 0
-      ? (alimentoConsumido / (totalHuevos / 12)).toFixed(1)
+      ? (alimentoConsumido / (totalHuevos / 30)).toFixed(1)
       : "0.0";
 
   const handleRecoleccionSubmit = (e) => {
@@ -117,9 +117,9 @@ const DashboardProduccion = () => {
         prev.map((item) =>
           item.id === produccionEnEdicion.id
             ? {
-                ...item,
-                ...produccion,
-              }
+              ...item,
+              ...produccion,
+            }
             : item,
         ),
       );
@@ -519,7 +519,7 @@ const DashboardProduccion = () => {
           </section>
 
           <aside className="space-y-8">
-            
+
 
             <article className="bg-white dark:bg-zinc-900 p-6 rounded-3xl border border-slate-100/80 dark:border-zinc-800/80 shadow-sm">
               <header className="flex items-center gap-2 mb-6">
@@ -737,13 +737,10 @@ const DashboardProduccion = () => {
                     className="mt-1.5 bg-slate-50 dark:bg-zinc-950 border border-slate-200/50 dark:border-zinc-800 rounded-xl py-2.5 px-3 text-sm focus:ring-1 focus:ring-[#2ea66d] focus:border-[#2ea66d] font-semibold text-slate-800 dark:text-slate-200"
                   >
                     <option value="Galpón A - Ponedoras">
-                      Galpón A - Ponedoras
+                      Galpón 1
                     </option>
                     <option value="Galpón B - Ponedoras">
-                      Galpón B - Ponedoras
-                    </option>
-                    <option value="Galpón C - Ponedoras">
-                      Galpón C - Ponedoras
+                      Galpón 2
                     </option>
                   </select>
                 </label>
@@ -752,19 +749,21 @@ const DashboardProduccion = () => {
               <div className="grid grid-cols-2 gap-4">
                 <label className="flex flex-col text-xs font-bold text-slate-500 uppercase">
                   Lote
-                  <input
-                    type="text"
+                  <select
                     value={lote}
                     onChange={(e) => setLote(e.target.value)}
-                    className="mt-1.5 bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-3 text-sm focus:ring-1 focus:ring-[#2ea66d] focus:border-[#2ea66d] font-semibold text-slate-800"
-                  />
+                    className="mt-1.5 bg-slate-50 dark:bg-zinc-950 border border-slate-200/50 dark:border-zinc-800 rounded-xl py-2.5 px-3 text-sm focus:ring-1 focus:ring-[#2ea66d] focus:border-[#2ea66d] font-semibold text-slate-800 dark:text-slate-200"
+                  >
+                    <option value="Lote A">Lote A</option>
+                    <option value="Lote B">Lote B</option>
+                  </select>
                 </label>
                 <label className="flex flex-col text-xs font-bold text-slate-500 uppercase">
                   Línea Genética
                   <select
                     value={lineaGenetica}
                     onChange={(e) => setLineaGenetica(e.target.value)}
-                    className="mt-1.5 bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-3 text-sm focus:ring-1 focus:ring-[#2ea66d] focus:border-[#2ea66d] font-semibold text-slate-800"
+                    className="mt-1.5 bg-slate-50 dark:bg-zinc-950 border border-slate-200/50 dark:border-zinc-800 rounded-xl py-2.5 px-3 text-sm focus:ring-1 focus:ring-[#2ea66d] focus:border-[#2ea66d] font-semibold text-slate-800 dark:text-slate-200"
                   >
                     <option value="">Seleccionar</option>
                     <option value="Hy-Line Brown">Hy-Line Brown</option>
@@ -853,86 +852,89 @@ const DashboardProduccion = () => {
             </form>
           </article>
         </dialog>
-      )}
+      )
+      }
 
-      {isModalAlimentoOpen && (
-        <dialog
-          open
-          className="fixed inset-0 z-50 overflow-y-auto bg-transparent flex items-center justify-center min-h-screen p-4 m-0 w-full max-w-none"
-        >
-          <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
-            onClick={() => setIsModalAlimentoOpen(false)}
-          />
-          <article className="relative bg-white dark:bg-zinc-950 rounded-3xl text-left overflow-hidden shadow-2xl w-full max-w-md border border-slate-100 dark:border-zinc-800/80 animate-slide-up z-10">
-            <section className="p-8">
-              <header className="flex items-center justify-between mb-8 pb-4 border-b border-slate-100 dark:border-zinc-800">
-                <h3 className="text-xl font-bold flex items-center gap-2 text-slate-800 dark:text-white">
-                  <span className="material-symbols-outlined text-[#2ea66d] font-bold">
-                    inventory_2
-                  </span>
-                  Ingreso de Alimento
-                </h3>
-                <button
-                  onClick={() => setIsModalAlimentoOpen(false)}
-                  className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-zinc-800 flex cursor-pointer bg-transparent border-none"
-                >
-                  <span className="material-symbols-outlined">close</span>
-                </button>
-              </header>
-
-              <form onSubmit={handleAlimentoSubmit} className="space-y-6">
-                <label className="flex flex-col space-y-2 text-sm font-semibold text-slate-600 dark:text-slate-400">
-                  Tipo de Alimento
-                  <select className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl focus:ring-2 focus:ring-[#2ea66d]/50 py-3 px-4 text-sm font-bold text-slate-800 dark:text-slate-200">
-                    <option value="inicio">Inicio (0-4 semanas)</option>
-                    <option value="crecimiento">
-                      Crecimiento (5-18 semanas)
-                    </option>
-                    <option value="produccion">Producción (19+ semanas)</option>
-                  </select>
-                </label>
-
-                <label className="flex flex-col space-y-2 text-sm font-semibold text-slate-600 dark:text-slate-400">
-                  Cantidad (kg)
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    placeholder="0.0"
-                    value={alimentoInput}
-                    onChange={(e) =>
-                      setAlimentoInput(e.target.value.replace(/[^0-9.]/g, ""))
-                    }
-                    className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl focus:ring-2 focus:ring-[#2ea66d]/50 py-3 px-4 text-lg font-bold text-slate-800 dark:text-slate-200"
-                  />
-                </label>
-
-                <figure className="bg-primary/5 p-4 rounded-xl border border-primary/10 m-0">
-                  <figcaption className="flex justify-between items-center text-xs text-primary font-bold uppercase tracking-wider mb-1">
-                    Equivalente en Bultos
-                  </figcaption>
-                  <p className="text-2xl font-black text-slate-800 dark:text-slate-100">
-                    {previewBultos}{" "}
-                    <span className="text-sm font-normal text-slate-500">
-                      Bultos (50kg)
+      {
+        isModalAlimentoOpen && (
+          <dialog
+            open
+            className="fixed inset-0 z-50 overflow-y-auto bg-transparent flex items-center justify-center min-h-screen p-4 m-0 w-full max-w-none"
+          >
+            <div
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+              onClick={() => setIsModalAlimentoOpen(false)}
+            />
+            <article className="relative bg-white dark:bg-zinc-950 rounded-3xl text-left overflow-hidden shadow-2xl w-full max-w-md border border-slate-100 dark:border-zinc-800/80 animate-slide-up z-10">
+              <section className="p-8">
+                <header className="flex items-center justify-between mb-8 pb-4 border-b border-slate-100 dark:border-zinc-800">
+                  <h3 className="text-xl font-bold flex items-center gap-2 text-slate-800 dark:text-white">
+                    <span className="material-symbols-outlined text-[#2ea66d] font-bold">
+                      inventory_2
                     </span>
-                  </p>
-                </figure>
-
-                <menu className="flex gap-4 mt-4 p-0">
+                    Ingreso de Alimento
+                  </h3>
                   <button
-                    type="submit"
-                    className="flex-1 bg-[#3dbd14] text-black font-bold py-4 rounded-xl hover:bg-[#3dbd14] transition-all cursor-pointer shadow-lg shadow-primary/20 border-none"
+                    onClick={() => setIsModalAlimentoOpen(false)}
+                    className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-zinc-800 flex cursor-pointer bg-transparent border-none"
                   >
-                    Registrar Entrada
+                    <span className="material-symbols-outlined">close</span>
                   </button>
-                </menu>
-              </form>
-            </section>
-          </article>
-        </dialog>
-      )}
-    </main>
+                </header>
+
+                <form onSubmit={handleAlimentoSubmit} className="space-y-6">
+                  <label className="flex flex-col space-y-2 text-sm font-semibold text-slate-600 dark:text-slate-400">
+                    Tipo de Alimento
+                    <select className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl focus:ring-2 focus:ring-[#2ea66d]/50 py-3 px-4 text-sm font-bold text-slate-800 dark:text-slate-200">
+                      <option value="inicio">Inicio (0-4 semanas)</option>
+                      <option value="crecimiento">
+                        Crecimiento (5-18 semanas)
+                      </option>
+                      <option value="produccion">Producción (19+ semanas)</option>
+                    </select>
+                  </label>
+
+                  <label className="flex flex-col space-y-2 text-sm font-semibold text-slate-600 dark:text-slate-400">
+                    Cantidad (kg)
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      placeholder="0.0"
+                      value={alimentoInput}
+                      onChange={(e) =>
+                        setAlimentoInput(e.target.value.replace(/[^0-9.]/g, ""))
+                      }
+                      className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl focus:ring-2 focus:ring-[#2ea66d]/50 py-3 px-4 text-lg font-bold text-slate-800 dark:text-slate-200"
+                    />
+                  </label>
+
+                  <figure className="bg-primary/5 p-4 rounded-xl border border-primary/10 m-0">
+                    <figcaption className="flex justify-between items-center text-xs text-primary font-bold uppercase tracking-wider mb-1">
+                      Equivalente en Bultos
+                    </figcaption>
+                    <p className="text-2xl font-black text-slate-800 dark:text-slate-100">
+                      {previewBultos}{" "}
+                      <span className="text-sm font-normal text-slate-500">
+                        Bultos (50kg)
+                      </span>
+                    </p>
+                  </figure>
+
+                  <menu className="flex gap-4 mt-4 p-0">
+                    <button
+                      type="submit"
+                      className="flex-1 bg-[#3dbd14] text-black font-bold py-4 rounded-xl hover:bg-[#3dbd14] transition-all cursor-pointer shadow-lg shadow-primary/20 border-none"
+                    >
+                      Registrar Entrada
+                    </button>
+                  </menu>
+                </form>
+              </section>
+            </article>
+          </dialog>
+        )
+      }
+    </main >
   );
 };
 

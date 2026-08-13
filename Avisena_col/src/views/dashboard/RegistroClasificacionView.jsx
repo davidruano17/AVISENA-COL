@@ -3,18 +3,18 @@
 import React, { useState, useEffect } from 'react';
 
 const formatDots = (num) => {
-  if (!num) return "";
-  let val = num.toString().replace(/\D/g, "");
-  return val.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    if (!num) return "";
+    let val = num.toString().replace(/\D/g, "");
+    return val.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 };
 
 const cleanNum = (str) => {
-  if (!str) return 0;
-  return parseFloat(str.toString().replace(/\./g, '').replace('$', '').trim()) || 0;
+    if (!str) return 0;
+    return parseFloat(str.toString().replace(/\./g, '').replace('$', '').trim()) || 0;
 };
 
 const formatCurrency = (val) => new Intl.NumberFormat('es-CO', {
-  style: 'currency', currency: 'COP', minimumFractionDigits: 0
+    style: 'currency', currency: 'COP', minimumFractionDigits: 0
 }).format(val);
 
 const formatExactPanales = (unidades) => {
@@ -54,7 +54,6 @@ export default function ClasificacionView() {
     const [generalInfo, setGeneralInfo] = useState({
         fecha: new Date().toISOString().split('T')[0],
         galpon: "",
-        lote: "", 
         responsable: "",
         observaciones: ""
     });
@@ -62,6 +61,50 @@ export default function ClasificacionView() {
     const [historial, setHistorial] = useState([]);
     const [filtroGalpon, setFiltroGalpon] = useState("");
     const [selectedRecordIndex, setSelectedRecordIndex] = useState(null);
+
+    const [produccionOrigen, setProduccionOrigen] = useState(null);
+    const [produccionesPendientes, setProduccionesPendientes] = useState([]);
+
+    useEffect(() => {
+        const selectedStr = localStorage.getItem("produccionSeleccionada");
+        if (selectedStr) {
+            try {
+                const selected = JSON.parse(selectedStr);
+                setProduccionOrigen(selected);
+                setGeneralInfo({
+                    fecha: selected.fecha || new Date().toISOString().split('T')[0],
+                    galpon: selected.galpon || "",
+                    responsable: selected.trabajador || "",
+                    observaciones: selected.notes || selected.notas || ""
+                });
+                setModals(prev => ({ ...prev, registro: true }));
+            } catch (e) {
+                console.error("Error al cargar produccionSeleccionada:", e);
+            }
+        }
+    }, []);
+
+    useEffect(() => {
+        const pendingSaved = localStorage.getItem("produccionesPendientes");
+        if (pendingSaved) {
+            try {
+                setProduccionesPendientes(JSON.parse(pendingSaved));
+            } catch (e) {
+                console.error("Error al cargar produccionesPendientes:", e);
+            }
+        }
+    }, [modals.registro]);
+
+    const handleDesvincularRecoleccion = () => {
+        localStorage.removeItem("produccionSeleccionada");
+        setProduccionOrigen(null);
+        setGeneralInfo({
+            fecha: new Date().toISOString().split('T')[0],
+            galpon: "",
+            responsable: "",
+            observaciones: ""
+        });
+    };
 
     useEffect(() => {
         const saved = localStorage.getItem('avisena_storage');
@@ -107,50 +150,22 @@ export default function ClasificacionView() {
     const openModal = (name) => setModals(prev => ({ ...prev, [name]: true }));
     const closeModal = (name) => {
         setModals(prev => ({ ...prev, [name]: false }));
-        if (name === 'registro') setStep(1);
+        if (name === 'registro') {
+            setStep(1);
+            localStorage.removeItem("produccionSeleccionada");
+            setProduccionOrigen(null);
+        }
     };
 
-const initialTableData = {
-  C: { hoy: "", ayer: 0, precio: "" },
-  B: { hoy: "", ayer: 0, precio: "" },
-  A: { hoy: "", ayer: 0, precio: "" },
-  AA: { hoy: "", ayer: 0, precio: "" },
-  AAA: { hoy: "", ayer: 0, precio: "" },
-  Jumbo: { hoy: "", ayer: 0, precio: "" }
-};
+    const obtenerSiguienteId = () => {
+        if (historial.length === 0) return 1;
+        const ultimoId = historial[historial.length - 1].id;
+        const num = parseInt(ultimoId.split('-')[1]);
+        return isNaN(num) ? historial.length + 1 : num + 1;
+    };
 
-export default function ClasificacionView() {
-  const [modals, setModals] = useState({
-    registro: false,
-    exito: false,
-    borrado: false,
-    detalle: false
-  });
-
-  const [step, setStep] = useState(1);
-  const [tableData, setTableData] = useState(initialTableData);
-  const [generalInfo, setGeneralInfo] = useState({
-    fecha: new Date().toISOString().split('T')[0],
-    galpon: "",
-    lote: "",
-    responsable: "",
-    observaciones: ""
-  });
-
-  const [historial, setHistorial] = useState([]);
-  const [filtroGalpon, setFiltroGalpon] = useState("");
-  const [selectedRecordIndex, setSelectedRecordIndex] = useState(null);
-
-  const [produccionOrigen, setProduccionOrigen] = useState(null);
-  const [produccionesPendientes, setProduccionesPendientes] = useState([]);
-
-  useEffect(() => {
-    // Cargar la producción seleccionada desde localStorage
-    const selectedStr = localStorage.getItem("produccionSeleccionada");
-    if (selectedStr) {
-      try {
-        const selected = JSON.parse(selectedStr);
-        setProduccionOrigen(selected);
+    const handleLimpiarFormulario = () => {
+        setTableData(initialTableData);
         setGeneralInfo({
             fecha: new Date().toISOString().split('T')[0],
             galpon: "",
@@ -167,8 +182,8 @@ export default function ClasificacionView() {
             ...prev,
             [tipo]: {
                 ...prev[tipo],
-                [field]: field === 'precio' 
-                    ? formatDots(value) 
+                [field]: field === 'precio'
+                    ? formatDots(value)
                     : (value === "" ? "" : parseInt(value) || 0)
             }
         }));
@@ -182,7 +197,7 @@ export default function ClasificacionView() {
         const precio = cleanNum(row.precio);
         const panalesHoy = hoy / 30;
         const sub = panalesHoy * precio;
-        
+
         acc.unidades += hoy;
         acc.panales += panalesHoy;
         acc.dinero += sub;
@@ -195,7 +210,7 @@ export default function ClasificacionView() {
             const hoy = parseInt(row.hoy) || 0;
             const ayer = parseInt(row.ayer) || 0;
             const totalAcumulado = hoy + ayer;
-            acc[tipo] = totalAcumulado % 30; 
+            acc[tipo] = totalAcumulado % 30;
         } else {
             acc[tipo] = 0;
         }
@@ -233,11 +248,20 @@ export default function ClasificacionView() {
             alert('Por favor, ingrese cantidades en la recolección antes de continuar.');
             return;
         }
+        if (produccionOrigen && totales.unidades !== Number(produccionOrigen.huevosBuenos)) {
+            alert(`La cantidad total de huevos clasificados (${totales.unidades}) debe ser exactamente igual a los huevos buenos recolectados (${produccionOrigen.huevosBuenos}).`);
+            return;
+        }
         setStep(2);
     };
 
     const handleSave = (e) => {
         e.preventDefault();
+
+        if (produccionOrigen && totales.unidades !== Number(produccionOrigen.huevosBuenos)) {
+            alert(`Error: La cantidad total de huevos clasificados (${totales.unidades}) no coincide con los huevos buenos recolectados (${produccionOrigen.huevosBuenos}).`);
+            return;
+        }
 
         const detallesNormalizados = {};
         CLASIFICACIONES.forEach(tipo => {
@@ -252,7 +276,7 @@ export default function ClasificacionView() {
             id: `REC-${String(obtenerSiguienteId()).padStart(3, '0')}`,
             fecha: generalInfo.fecha,
             galpon: generalInfo.galpon,
-            lote: generalInfo.lote || "N/A", 
+            lote: generalInfo.lote || "N/A",
             responsable: generalInfo.responsable,
             total: formatCurrency(totales.dinero),
             unidades: totales.unidades,
@@ -266,7 +290,23 @@ export default function ClasificacionView() {
         const nuevoHistorial = [...historial, registro];
         setHistorial(nuevoHistorial);
         localStorage.setItem('avisena_storage', JSON.stringify(nuevoHistorial));
-        
+
+        if (produccionOrigen) {
+            const pendingSaved = localStorage.getItem("produccionesPendientes");
+            if (pendingSaved) {
+                try {
+                    let pending = JSON.parse(pendingSaved);
+                    pending = pending.filter(item => item.id !== produccionOrigen.id);
+                    localStorage.setItem("produccionesPendientes", JSON.stringify(pending));
+                    setProduccionesPendientes(pending);
+                } catch (err) {
+                    console.error("Error al actualizar pendientes:", err);
+                }
+            }
+            localStorage.removeItem("produccionSeleccionada");
+            setProduccionOrigen(null);
+        }
+
         closeModal('registro');
         openModal('exito');
 
@@ -278,156 +318,24 @@ export default function ClasificacionView() {
             responsable: "",
             observaciones: ""
         });
-      } else {
-        setTableData(prev => {
-          const limpiado = { ...prev };
-          CLASIFICACIONES.forEach(tipo => {
-            limpiado[tipo] = { ...limpiado[tipo], ayer: 0 };
-          });
-          return limpiado;
-        });
-      }
-    }
-  }, [generalInfo.galpon, historial]);
+        setStep(1);
+    };
 
-  const openModal = (name) => setModals(prev => ({ ...prev, [name]: true }));
-  const closeModal = (name) => {
-    setModals(prev => ({ ...prev, [name]: false }));
-    if (name === 'registro') {
-      setStep(1);
-      localStorage.removeItem("produccionSeleccionada");
-      setProduccionOrigen(null);
-    }
-  };
+    const verDetalle = (index) => {
+        setSelectedRecordIndex(index);
+        openModal('detalle');
+    };
 
-  const obtenerSiguienteId = () => {
-    if (historial.length === 0) return 1;
-    const ultimoId = historial[historial.length - 1].id;
-    const num = parseInt(ultimoId.split('-')[1]);
-    return isNaN(num) ? historial.length + 1 : num + 1;
-  };
-
-  const handleLimpiarFormulario = () => {
-    setTableData(initialTableData);
-    setGeneralInfo({
-      fecha: new Date().toISOString().split('T')[0],
-      galpon: "",
-      lote: "",
-      responsable: "",
-      observaciones: ""
-    });
-    closeModal('registro');
-    openModal('borrado');
-  };
-
-  const handleTableChange = (tipo, field, value) => {
-    setTableData(prev => ({
-      ...prev,
-      [tipo]: {
-        ...prev[tipo],
-        [field]: field === 'precio'
-          ? formatDots(value)
-          : (value === "" ? "" : parseInt(value) || 0)
-      }
-    }));
-  };
-
-  const totales = CLASIFICACIONES.reduce((acc, key) => {
-    const row = tableData[key];
-    if (!row) return acc;
-
-    const hoy = parseInt(row.hoy) || 0;
-    const precio = cleanNum(row.precio);
-    const panalesHoy = hoy / 30;
-    const sub = panalesHoy * precio;
-
-    acc.unidades += hoy;
-    acc.panales += panalesHoy;
-    acc.dinero += sub;
-    return acc;
-  }, { unidades: 0, panales: 0, dinero: 0 });
-
-  const sobrantesPorTipo = CLASIFICACIONES.reduce((acc, tipo) => {
-    const row = tableData[tipo];
-    if (row) {
-      const hoy = parseInt(row.hoy) || 0;
-      const ayer = parseInt(row.ayer) || 0;
-      const totalAcumulado = hoy + ayer;
-      acc[tipo] = totalAcumulado % 30;
-    } else {
-      acc[tipo] = 0;
-    }
-    return acc;
-  }, {});
-
-  const totalSobrantesUnidades = Object.values(sobrantesPorTipo).reduce((a, b) => a + b, 0);
-
-  const obtenerTextoDesglose = (data) => {
-    if (!data) return "Ninguno";
-    return CLASIFICACIONES
-      .map(tipo => {
-        const row = data[tipo];
-        if (!row) return null;
-        const cant = parseInt(row.hoy) || 0;
-        return cant > 0 ? `${cant} ${tipo}` : null;
-      })
-      .filter(Boolean)
-      .join(', ') || "Ninguno";
-  };
-
-  const obtenerTextoSobrantes = (dataSobrantes) => {
-    if (!dataSobrantes) return "Ninguno";
-    return CLASIFICACIONES
-      .map(tipo => {
-        const cant = dataSobrantes[tipo] || 0;
-        return cant > 0 ? `${cant} ${tipo}` : null;
-      })
-      .filter(Boolean)
-      .join(', ') || "Ninguno";
-  };
-
-  const handleContinuarPaso2 = () => {
-    if (totales.unidades <= 0) {
-      alert('Por favor, ingrese cantidades en la recolección antes de continuar.');
-      return;
-    }
-    if (produccionOrigen && totales.unidades !== Number(produccionOrigen.huevosBuenos)) {
-      alert(`La cantidad total de huevos clasificados (${totales.unidades}) debe ser exactamente igual a los huevos buenos recolectados (${produccionOrigen.huevosBuenos}).`);
-      return;
-    }
-    setStep(2);
-  };
-
-  const handleSave = (e) => {
-    e.preventDefault();
-
-    if (produccionOrigen && totales.unidades !== Number(produccionOrigen.huevosBuenos)) {
-      alert(`Error: La cantidad total de huevos clasificados (${totales.unidades}) no coincide con los huevos buenos recolectados (${produccionOrigen.huevosBuenos}).`);
-      return;
-    }
-
-    const detallesNormalizados = {};
-    CLASIFICACIONES.forEach(tipo => {
-      detallesNormalizados[tipo] = {
-        hoy: parseInt(tableData[tipo].hoy) || 0,
-        ayer: parseInt(tableData[tipo].ayer) || 0,
-        precio: tableData[tipo].precio || ""
-      };
-    });
-
-    const registro = {
-      id: `REC-${String(obtenerSiguienteId()).padStart(3, '0')}`,
-      fecha: generalInfo.fecha,
-      galpon: generalInfo.galpon,
-      lote: generalInfo.lote || "N/A",
-      responsable: generalInfo.responsable,
-      total: formatCurrency(totales.dinero),
-      unidades: totales.unidades,
-      panales: totales.panales,
-      obs: generalInfo.observaciones || "Sin observaciones",
-      detalles: detallesNormalizados,
-      sobrantesParaManana: { ...sobrantesPorTipo },
-      totalSobrantes: totalSobrantesUnidades
+    const eliminarRegistro = (index) => {
+        if (window.confirm("¿Estás seguro de eliminar este registro permanentemente?")) {
+            setHistorial(prev => {
+                const copy = [...prev];
+                copy.splice(index, 1);
+                localStorage.setItem('avisena_storage', JSON.stringify(copy));
+                return copy;
+            });
+            if (selectedRecordIndex === index) closeModal('detalle');
+        }
     };
 
     const handleMandarAFinanzas = (reg) => {
@@ -440,9 +348,9 @@ export default function ClasificacionView() {
             alert('No hay datos para exportar.');
             return;
         }
-        const encabezados = ["ID", "Fecha", "Galpon", "Lote", "Responsable", "Unidades", "Panales", "Total", "Sobrantes Mañana", "Observaciones"];
+        const encabezados = ["ID", "Fecha", "Galpon", "Responsable", "Unidades", "Panales", "Total", "Sobrantes Mañana", "Observaciones"];
         const filas = historial.map(reg => [
-            reg.id, reg.fecha, reg.galpon, reg.lote || "N/A", reg.responsable,
+            reg.id, reg.fecha, reg.galpon, reg.responsable,
             getUnidades(reg), formatExactPanales(getUnidades(reg)),
             reg.total.replace(/[$. ]/g, ''), reg.totalSobrantes || 0, reg.obs.replace(/,/g, " ")
         ].join(","));
@@ -456,13 +364,12 @@ export default function ClasificacionView() {
         link.click();
     };
 
-    const historialFiltrado = historial.filter(reg => 
+    const historialFiltrado = historial.filter(reg =>
         reg.galpon && reg.galpon.toString().includes(filtroGalpon)
     );
 
     return (
         <span className="min-h-screen bg-slate-50 text-gray-800 antialiased font-sans block">
-            
 
             <main className="max-w-6xl mx-auto mt-12 px-6 pb-16 space-y-12">
                 <section className="flex flex-col md:flex-row md:justify-between md:items-center bg-white rounded-2xl p-8 shadow-sm border border-gray-100 gap-6">
@@ -470,8 +377,8 @@ export default function ClasificacionView() {
                         <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Registro de Clasificación de Huevos</h1>
                         <p className="text-gray-500 text-sm mt-1">Control y seguimiento de recolección diaria — Unidad Avícola SENA</p>
                     </header>
-                    <button 
-                        type="button" 
+                    <button
+                        type="button"
                         className=" bg-primary hover:bg-[#3dbd14] text-slate-950 font-extrabold py-3.5 px-6 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 tracking-wide text-sm"
                         onClick={() => openModal('registro')}
                     >
@@ -483,17 +390,17 @@ export default function ClasificacionView() {
                     <header className="p-6 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                         <h2 className="text-lg font-bold text-slate-900">Historial de Clasificación</h2>
                         <aside className="flex items-center gap-3">
-                            <input 
-                                type="text" 
-                                placeholder="Filtrar por galpón..." 
+                            <input
+                                type="text"
+                                placeholder="Filtrar por galpón..."
                                 value={filtroGalpon}
                                 onChange={(e) => setFiltroGalpon(e.target.value)}
                                 className="bg-slate-50 border border-gray-200 rounded-xl px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-green-500 w-48 transition-all"
                             />
-                            <button 
-                                type="button" 
+                            <button
+                                type="button"
                                 title="Exportar a Excel"
-                                className=" bg-primary hover:bg-[#3dbd14] text-slate-950 p-2.5 rounded-xl transition-colors shadow-sm"
+                                className="bg-primary hover:bg-[#3dbd14] text-slate-950 p-2.5 rounded-xl transition-colors shadow-sm"
                                 onClick={handleExportarExcel}
                             >
                                 📥
@@ -506,7 +413,6 @@ export default function ClasificacionView() {
                             <thead className="bg-slate-50 border-b border-gray-200">
                                 <tr className="text-gray-400">
                                     <th className="p-4 font-bold text-xs uppercase tracking-wider">ID / Fecha</th>
-                                    <th className="p-4 font-bold text-xs uppercase tracking-wider">Galpón / Lote</th>
                                     <th className="p-4 font-bold text-xs uppercase tracking-wider">Producción Hoy</th>
                                     <th className="p-4 font-bold text-xs uppercase tracking-wider">Sobrantes Mañana</th>
                                     <th className="p-4 font-bold text-xs uppercase tracking-wider">Total Dinero</th>
@@ -532,11 +438,8 @@ export default function ClasificacionView() {
                                             <span className="text-xs text-gray-400 block mt-0.5">{reg.fecha}</span>
                                         </td>
                                         <td className="p-4">
-                                            <span className="flex flex-col gap-1">
-                                                <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200 w-max">
-                                                    Galpón {reg.galpon}
-                                                </span>
-                                                <span className="text-xs text-gray-500 font-medium pl-1">Lote: {reg.lote || "N/A"}</span>
+                                            <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200 w-max">
+                                                Galpón {reg.galpon}
                                             </span>
                                         </td>
                                         <td className="p-4">
@@ -561,8 +464,8 @@ export default function ClasificacionView() {
                                             </span>
                                         </td>
                                         <td className="p-4 font-extrabold text-green-600 text-base">{reg.total}</td>
-                                        <td className="p-4">
-                                            <span className="flex items-center gap-2">
+                                        <td className="p-4 text-center">
+                                            <span className="flex items-center justify-center gap-2">
                                                 <span className="w-6 h-6 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-[10px] font-bold uppercase border border-slate-200">
                                                     {reg.responsable ? reg.responsable.charAt(0) : 'U'}
                                                 </span>
@@ -571,26 +474,26 @@ export default function ClasificacionView() {
                                         </td>
                                         <td className="p-4">
                                             <span className="flex justify-center gap-1.5">
-                                                <button 
-                                                    type="button" 
-                                                    className="bg-blue-50 hover:bg-blue-100 text-blue-600 w-8 h-8 flex items-center justify-center rounded-xl transition-all duration-150 shadow-sm" 
-                                                    title="Mandar a Finanzas como Ingreso" 
+                                                <button
+                                                    type="button"
+                                                    className="bg-blue-50 hover:bg-blue-100 text-blue-600 w-8 h-8 flex items-center justify-center rounded-xl transition-all duration-150 shadow-sm"
+                                                    title="Mandar a Finanzas como Ingreso"
                                                     onClick={() => handleMandarAFinanzas(reg)}
                                                 >
                                                     📊
                                                 </button>
-                                                <button 
-                                                    type="button" 
-                                                    className="bg-slate-100 hover:bg-slate-200/80 text-slate-700 w-8 h-8 flex items-center justify-center rounded-xl transition-all duration-150 shadow-sm" 
-                                                    title="Ver Detalle" 
+                                                <button
+                                                    type="button"
+                                                    className="bg-slate-100 hover:bg-slate-200/80 text-slate-700 w-8 h-8 flex items-center justify-center rounded-xl transition-all duration-150 shadow-sm"
+                                                    title="Ver Detalle"
                                                     onClick={() => verDetalle(index)}
                                                 >
                                                     👁️
                                                 </button>
-                                                <button 
-                                                    type="button" 
-                                                    className="bg-red-50 hover:bg-red-100 text-red-600 w-8 h-8 flex items-center justify-center rounded-xl transition-all duration-150 shadow-sm" 
-                                                    title="Eliminar" 
+                                                <button
+                                                    type="button"
+                                                    className="bg-red-50 hover:bg-red-100 text-red-600 w-8 h-8 flex items-center justify-center rounded-xl transition-all duration-150 shadow-sm"
+                                                    title="Eliminar"
                                                     onClick={() => eliminarRegistro(index)}
                                                 >
                                                     🗑️
@@ -618,6 +521,62 @@ export default function ClasificacionView() {
                             <form onSubmit={step === 2 ? handleSave : (e) => e.preventDefault()} className="p-6 overflow-y-auto flex-1 space-y-5">
                                 {step === 1 && (
                                     <section className="space-y-5">
+                                        {/* Vinculación de recolección */}
+                                        {produccionOrigen ? (
+                                            <div className="bg-green-50/85 border border-green-200 text-green-900 p-4 rounded-2xl flex flex-col gap-1.5 shadow-sm">
+                                                <div className="flex justify-between items-center">
+                                                    <span className="font-bold text-sm flex items-center gap-1.5 text-green-800">
+                                                        🥚 Recolección Vinculada
+                                                    </span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleDesvincularRecoleccion}
+                                                        className="text-xs text-red-600 hover:text-red-800 font-bold underline bg-transparent border-none cursor-pointer"
+                                                    >
+                                                        Desvincular
+                                                    </button>
+                                                </div>
+                                                <div className="text-xs text-slate-650 grid grid-cols-2 sm:grid-cols-3 gap-2 mt-1 bg-white/60 p-2.5 rounded-xl border border-green-100 font-medium">
+                                                    <span><strong>Fecha:</strong> {produccionOrigen.fecha}</span>
+                                                    <span><strong>Galpón:</strong> {produccionOrigen.galpon}</span>
+                                                    <span><strong>Huevos Buenos:</strong> <strong className="text-green-700 font-extrabold">{produccionOrigen.huevosBuenos}</strong></span>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            produccionesPendientes.length > 0 && (
+                                                <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl space-y-2 shadow-sm">
+                                                    <label className="block text-xs font-extrabold text-slate-600 uppercase tracking-wide">
+                                                        Vincular con Recolección Pendiente:
+                                                    </label>
+                                                    <select
+                                                        onChange={(e) => {
+                                                            const val = e.target.value;
+                                                            if (val) {
+                                                                const found = produccionesPendientes.find(p => p.id.toString() === val);
+                                                                if (found) {
+                                                                    setProduccionOrigen(found);
+                                                                    setGeneralInfo({
+                                                                        fecha: found.fecha,
+                                                                        galpon: found.galpon,
+                                                                        responsable: found.trabajador || "",
+                                                                        observaciones: found.notas || ""
+                                                                    });
+                                                                }
+                                                            }
+                                                        }}
+                                                        className="w-full p-2.5 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none text-sm font-semibold transition-all"
+                                                        value={produccionOrigen ? produccionOrigen.id : ""}
+                                                    >
+                                                        <option value="">-- Seleccionar Recolección Pendiente --</option>
+                                                        {produccionesPendientes.map(p => (
+                                                            <option key={p.id} value={p.id}>
+                                                                {p.fecha} - {p.galpon} ({p.huevosBuenos} huevos buenos)
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                            )
+                                        )}
                                         <section className="overflow-x-auto border border-gray-150 rounded-2xl shadow-sm block">
                                             <table className="w-full text-left border-collapse">
                                                 <thead>
@@ -686,7 +645,7 @@ export default function ClasificacionView() {
                                                 </tbody>
                                             </table>
                                         </section>
-                                        
+
                                         <section className="grid grid-cols-3 gap-4 bg-slate-50/60 rounded-2xl p-4 border border-gray-150 shadow-sm">
                                             <span className="text-center border-r border-gray-200 block">
                                                 <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Unidades Totales</span>
@@ -702,7 +661,31 @@ export default function ClasificacionView() {
                                                 <strong className="text-lg font-black text-green-600 mt-0.5 block">{formatCurrency(totales.dinero)}</strong>
                                             </span>
                                         </section>
-                                        
+
+                                        {produccionOrigen && (
+                                            <div className={`p-4 rounded-2xl border text-center flex flex-col items-center justify-center gap-1 shadow-sm transition-all duration-300 ${totales.unidades === Number(produccionOrigen.huevosBuenos)
+                                                ? 'bg-green-50 border-green-200 text-green-800'
+                                                : 'bg-red-50/80 border-red-200 text-red-800 animate-pulse'
+                                                }`}>
+                                                <span className="text-[10px] font-bold uppercase tracking-wider">Validación de Cantidad</span>
+                                                <strong className="text-lg font-black">
+                                                    {totales.unidades} / {produccionOrigen.huevosBuenos} Huevos Clasificados
+                                                </strong>
+                                                <span className="text-xs font-semibold">
+                                                    {totales.unidades === Number(produccionOrigen.huevosBuenos) ? (
+                                                        <span className="text-green-700">✓ La cantidad coincide perfectamente. ¡Listo para continuar!</span>
+                                                    ) : (
+                                                        <span>
+                                                            {totales.unidades < Number(produccionOrigen.huevosBuenos)
+                                                                ? `⚠ Faltan clasificar ${Number(produccionOrigen.huevosBuenos) - totales.unidades} huevos.`
+                                                                : `⚠ Sobran ${totales.unidades - Number(produccionOrigen.huevosBuenos)} huevos clasificados.`
+                                                            }
+                                                        </span>
+                                                    )}
+                                                </span>
+                                            </div>
+                                        )}
+
                                         <button type="button" className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 rounded-xl transition-colors shadow-md" onClick={handleContinuarPaso2}>
                                             CONTINUAR &rarr;
                                         </button>
@@ -720,19 +703,43 @@ export default function ClasificacionView() {
                                                 <span className="text-xs font-bold text-gray-600 uppercase">Fecha</span>
                                                 <input type="date" value={generalInfo.fecha} onChange={e => setGeneralInfo({ ...generalInfo, fecha: e.target.value })} required className="p-2.5 border rounded-xl focus:ring-2 focus:ring-green-500 outline-none" />
                                             </label>
+
+                                            {/* Galpón y Responsable protegidos si provienen de recolección vinculada */}
                                             <label className="flex flex-col gap-1">
-                                                <span className="text-xs font-bold text-gray-600 uppercase">Galpón</span>
-                                                <input type="text" value={generalInfo.galpon} onChange={e => setGeneralInfo({ ...generalInfo, galpon: e.target.value })} placeholder="Ej: Galpón 1" required className="p-2.5 border rounded-xl focus:ring-2 focus:ring-green-500 outline-none" />
+                                                <span className="text-xs font-bold text-gray-600 uppercase">
+                                                    Galpón {produccionOrigen && <span className="text-green-600 font-normal text-[10px]">(Vinculado)</span>}
+                                                </span>
+                                                <input
+                                                    type="text"
+                                                    value={generalInfo.galpon}
+                                                    onChange={e => setGeneralInfo({ ...generalInfo, galpon: e.target.value })}
+                                                    placeholder="Ej: Galpón 1"
+                                                    required
+                                                    readOnly={Boolean(produccionOrigen)}
+                                                    className={`p-2.5 border rounded-xl outline-none transition-colors ${produccionOrigen
+                                                        ? "bg-gray-100 text-gray-600 font-semibold cursor-not-allowed border-gray-200"
+                                                        : "focus:ring-2 focus:ring-green-500"
+                                                        }`}
+                                                />
                                             </label>
                                             <label className="flex flex-col gap-1">
-                                                <span className="text-xs font-bold text-gray-600 uppercase">Lote</span>
-                                                <input type="text" value={generalInfo.lote} onChange={e => setGeneralInfo({ ...generalInfo, lote: e.target.value })} placeholder="Ej: LOTE-A2" required className="p-2.5 border rounded-xl focus:ring-2 focus:ring-green-500 outline-none" />
+                                                <span className="text-xs font-bold text-gray-600 uppercase">
+                                                    Responsable {produccionOrigen && <span className="text-green-600 font-normal text-[10px]">(Vinculado)</span>}
+                                                </span>
+                                                <input
+                                                    type="text"
+                                                    value={generalInfo.responsable}
+                                                    onChange={e => setGeneralInfo({ ...generalInfo, responsable: e.target.value })}
+                                                    placeholder="Nombre Completo"
+                                                    required
+                                                    readOnly={Boolean(produccionOrigen)}
+                                                    className={`p-2.5 border rounded-xl outline-none transition-colors ${produccionOrigen
+                                                        ? "bg-gray-100 text-gray-600 font-semibold cursor-not-allowed border-gray-200"
+                                                        : "focus:ring-2 focus:ring-green-500"
+                                                        }`}
+                                                />
                                             </label>
-                                            <label className="flex flex-col gap-1 col-span-2">
-                                                <span className="text-xs font-bold text-gray-600 uppercase">Responsable</span>
-                                                <input type="text" value={generalInfo.responsable} onChange={e => setGeneralInfo({ ...generalInfo, responsable: e.target.value })} placeholder="Nombre Completo" required className="p-2.5 border rounded-xl focus:ring-2 focus:ring-green-500 outline-none" />
-                                            </label>
-                                            
+
                                             <span className="col-span-2 bg-slate-50 border border-gray-200 rounded-2xl p-4 space-y-2 block text-xs">
                                                 <span className="block text-gray-600">
                                                     <strong className="font-bold text-slate-800 uppercase block mb-0.5">Producción Actual:</strong>
@@ -764,7 +771,7 @@ export default function ClasificacionView() {
                                         </footer>
                                     </section>
                                 )}
-                             </form>
+                            </form>
                         </article>
                     </span>
                 )}
@@ -807,7 +814,6 @@ export default function ClasificacionView() {
                                             <span className="text-gray-500 font-medium block">ID: <span className="font-bold text-gray-900 block text-base">{r.id}</span></span>
                                             <span className="text-gray-500 font-medium block">FECHA: <span className="font-bold text-gray-900 block text-base">{r.fecha}</span></span>
                                             <span className="text-gray-500 font-medium block">GALPÓN: <span className="font-bold text-gray-800 block">{r.galpon}</span></span>
-                                            <span className="text-gray-500 font-medium block">LOTE: <span className="font-bold text-gray-800 block">{r.lote || "N/A"}</span></span>
                                             <span className="text-gray-500 font-medium col-span-2 block">RESPONSABLE: <span className="font-bold text-gray-800 block">{r.responsable || "N/A"}</span></span>
                                         </span>
 
@@ -864,4 +870,4 @@ export default function ClasificacionView() {
             </main>
         </span>
     );
-} 
+}
