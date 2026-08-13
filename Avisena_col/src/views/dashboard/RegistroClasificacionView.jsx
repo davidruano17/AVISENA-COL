@@ -18,16 +18,16 @@ const formatCurrency = (val) => new Intl.NumberFormat('es-CO', {
 }).format(val);
 
 const formatExactPanales = (unidades) => {
-    if (!unidades || unidades === 0) return "0 panales";
-    const panales = Math.floor(unidades / 30);
-    const residuo = unidades % 30;
-    if (panales === 0) return `${residuo} uds`;
-    if (residuo === 0) return `${panales} ${panales === 1 ? 'panal' : 'panales'}`;
-    return `${panales} ${panales === 1 ? 'panal' : 'panales'} y ${residuo} uds`;
+  if (!unidades || unidades === 0) return "0 panales";
+  const panales = Math.floor(unidades / 30);
+  const residuo = unidades % 30;
+  if (panales === 0) return `${residuo} uds`;
+  if (residuo === 0) return `${panales} ${panales === 1 ? 'panal' : 'panales'}`;
+  return `${panales} ${panales === 1 ? 'panal' : 'panales'} y ${residuo} uds`;
 };
 
 const getUnidades = (reg) => {
-    return reg.unidades !== undefined ? reg.unidades : (reg.panales || 0);
+  return reg.unidades !== undefined ? reg.unidades : (reg.panales || 0);
 };
 
 const CLASIFICACIONES = ['C', 'B', 'A', 'AA', 'AAA', 'Jumbo'];
@@ -167,15 +167,18 @@ export default function ClasificacionView() {
     const handleLimpiarFormulario = () => {
         setTableData(initialTableData);
         setGeneralInfo({
-            fecha: new Date().toISOString().split('T')[0],
-            galpon: "",
-            lote: "",
-            responsable: "",
-            observaciones: ""
+          fecha: selected.fecha || new Date().toISOString().split('T')[0],
+          galpon: selected.galpon || "",
+          lote: selected.lote || "",
+          responsable: selected.trabajador || "",
+          observaciones: selected.notes || selected.notas || ""
         });
-        closeModal('registro');
-        openModal('borrado');
-    };
+        setModals(prev => ({ ...prev, registro: true }));
+      } catch (e) {
+        console.error("Error al cargar produccionSeleccionada:", e);
+      }
+    }
+  }, []);
 
     const handleTableChange = (tipo, field, value) => {
         setTableData(prev => ({
@@ -232,16 +235,10 @@ export default function ClasificacionView() {
             .join(', ') || "Ninguno";
     };
 
-    const obtenerTextoSobrantes = (dataSobrantes) => {
-        if (!dataSobrantes) return "Ninguno";
-        return CLASIFICACIONES
-            .map(tipo => {
-                const cant = dataSobrantes[tipo] || 0;
-                return cant > 0 ? `${cant} ${tipo}` : null;
-            })
-            .filter(Boolean)
-            .join(', ') || "Ninguno";
-    };
+  useEffect(() => {
+    const saved = localStorage.getItem('avisena_storage');
+    if (saved) setHistorial(JSON.parse(saved));
+  }, []);
 
     const handleContinuarPaso2 = () => {
         if (totales.unidades <= 0) {
@@ -255,8 +252,11 @@ export default function ClasificacionView() {
         setStep(2);
     };
 
-    const handleSave = (e) => {
-        e.preventDefault();
+  useEffect(() => {
+    if (generalInfo.galpon && historial.length > 0) {
+      const registrosGalpon = historial
+        .filter(r => r.galpon.toString() === generalInfo.galpon.toString())
+        .sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
 
         if (produccionOrigen && totales.unidades !== Number(produccionOrigen.huevosBuenos)) {
             alert(`Error: La cantidad total de huevos clasificados (${totales.unidades}) no coincide con los huevos buenos recolectados (${produccionOrigen.huevosBuenos}).`);
@@ -338,15 +338,21 @@ export default function ClasificacionView() {
         }
     };
 
-    const handleMandarAFinanzas = (reg) => {
-        localStorage.setItem('avisena_transfer_data', JSON.stringify(reg));
-        window.location.href = '/finanzas?action=importar_clasificacion';
-    };
+    const nuevoHistorial = [...historial, registro];
+    setHistorial(nuevoHistorial);
+    localStorage.setItem('avisena_storage', JSON.stringify(nuevoHistorial));
 
-    const handleExportarExcel = () => {
-        if (historial.length === 0) {
-            alert('No hay datos para exportar.');
-            return;
+    // Si había una recolección vinculada, eliminarla de pendientes
+    if (produccionOrigen) {
+      const pendingSaved = localStorage.getItem("produccionesPendientes");
+      if (pendingSaved) {
+        try {
+          let pending = JSON.parse(pendingSaved);
+          pending = pending.filter(item => item.id !== produccionOrigen.id);
+          localStorage.setItem("produccionesPendientes", JSON.stringify(pending));
+          setProduccionesPendientes(pending);
+        } catch (err) {
+          console.error("Error al actualizar pendientes:", err);
         }
         const encabezados = ["ID", "Fecha", "Galpon", "Responsable", "Unidades", "Panales", "Total", "Sobrantes Mañana", "Observaciones"];
         const filas = historial.map(reg => [
@@ -776,26 +782,171 @@ export default function ClasificacionView() {
                     </span>
                 )}
 
-                {/* MODALES STATUS */}
-                {modals.exito && (
-                    <span className="fixed inset-0 bg-slate-950/90 flex items-center justify-center p-4 z-50 block">
-                        <article className="text-center text-white max-w-sm flex flex-col items-center">
-                            <span className="text-4xl text-green-500 border-4 border-green-500 w-20 h-20 flex items-center justify-center rounded-full font-bold mb-4">✓</span>
-                            <h1 className="text-2xl font-black tracking-wide mb-2">¡REGISTRO EXITOSO!</h1>
-                            <button type="button" className="w-full bg-green-500 text-slate-950 font-black py-3 px-8 rounded-xl mt-6 hover:bg-green-400 transition-colors" onClick={() => closeModal('exito')}>CONTINUAR</button>
-                        </article>
-                    </span>
+                    <section className="grid grid-cols-3 gap-4 bg-slate-50/60 rounded-2xl p-4 border border-gray-150 shadow-sm">
+                      <span className="text-center border-r border-gray-200 block">
+                        <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Unidades Totales</span>
+                        <strong className="text-base font-black text-slate-800 mt-1 block">{totales.unidades} uds</strong>
+                        <span className="text-[11px] text-gray-500 font-medium">({obtenerTextoDesglose(tableData)})</span>
+                      </span>
+                      <span className="text-center border-r border-gray-200 px-1 block">
+                        <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Panales Totales</span>
+                        <strong className="text-xs font-bold text-green-700 mt-1.5 block leading-tight">{formatExactPanales(totales.unidades)}</strong>
+                      </span>
+                      <span className="text-center block">
+                        <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Valor Total</span>
+                        <strong className="text-lg font-black text-green-600 mt-0.5 block">{formatCurrency(totales.dinero)}</strong>
+                      </span>
+                    </section>
+
+                    {produccionOrigen && (
+                      <div className={`p-4 rounded-2xl border text-center flex flex-col items-center justify-center gap-1 shadow-sm transition-all duration-300 ${
+                        totales.unidades === Number(produccionOrigen.huevosBuenos)
+                          ? 'bg-green-50 border-green-200 text-green-800'
+                          : 'bg-red-50/80 border-red-200 text-red-800 animate-pulse'
+                      }`}>
+                        <span className="text-[10px] font-bold uppercase tracking-wider">Validación de Cantidad</span>
+                        <strong className="text-lg font-black">
+                          {totales.unidades} / {produccionOrigen.huevosBuenos} Huevos Clasificados
+                        </strong>
+                        <span className="text-xs font-semibold">
+                          {totales.unidades === Number(produccionOrigen.huevosBuenos) ? (
+                            <span className="text-green-700">✓ La cantidad coincide perfectamente. ¡Listo para continuar!</span>
+                          ) : (
+                            <span>
+                              {totales.unidades < Number(produccionOrigen.huevosBuenos) 
+                                ? `⚠ Faltan clasificar ${Number(produccionOrigen.huevosBuenos) - totales.unidades} huevos.` 
+                                : `⚠ Sobran ${totales.unidades - Number(produccionOrigen.huevosBuenos)} huevos clasificados.`
+                              }
+                            </span>
+                          )}
+                        </span>
+                      </div>
+                    )}
+
+                    <button type="button" className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 rounded-xl transition-colors shadow-md" onClick={handleContinuarPaso2}>
+                      CONTINUAR &rarr;
+                    </button>
+                  </section>
                 )}
 
-                {modals.borrado && (
-                    <span className="fixed inset-0 bg-slate-950/90 flex items-center justify-center p-4 z-50 block">
-                        <article className="text-center text-white max-w-sm flex flex-col items-center">
-                            <span className="text-4xl text-red-500 border-4 border-red-500 w-20 h-20 flex items-center justify-center rounded-full font-bold mb-4">✕</span>
-                            <h1 className="text-2xl font-black tracking-wide mb-2">¡FORMULARIO LIMPIADO!</h1>
-                            <button type="button" className="w-full bg-red-600 text-white font-black py-3 px-8 rounded-xl mt-6 hover:bg-red-500 transition-colors" onClick={() => closeModal('borrado')}>CONTINUAR</button>
-                        </article>
-                    </span>
+                {step === 2 && (
+                  <section className="space-y-5">
+                    <fieldset className="grid grid-cols-2 gap-4 border-none p-0">
+                      <label className="flex flex-col gap-1">
+                        <span className="text-xs font-bold text-gray-600 uppercase">Consecutivo</span>
+                        <input type="text" value={`REC-${String(obtenerSiguienteId()).padStart(3, '0')}`} readOnly className="p-2.5 bg-gray-100 border rounded-xl font-bold text-green-600 outline-none" />
+                      </label>
+                      <label className="flex flex-col gap-1">
+                        <span className="text-xs font-bold text-gray-600 uppercase">Fecha</span>
+                        <input type="date" value={generalInfo.fecha} onChange={e => setGeneralInfo({ ...generalInfo, fecha: e.target.value })} required className="p-2.5 border rounded-xl focus:ring-2 focus:ring-green-500 outline-none" />
+                      </label>
+                      <label className="flex flex-col gap-1">
+                        <span className="text-xs font-bold text-gray-600 uppercase">Galpón</span>
+                        <input type="text" value={generalInfo.galpon} onChange={e => setGeneralInfo({ ...generalInfo, galpon: e.target.value })} placeholder="Ej: Galpón 1" required className="p-2.5 border rounded-xl focus:ring-2 focus:ring-green-500 outline-none" />
+                      </label>
+                      <label className="flex flex-col gap-1">
+                        <span className="text-xs font-bold text-gray-600 uppercase">Lote</span>
+                        <input type="text" value={generalInfo.lote} onChange={e => setGeneralInfo({ ...generalInfo, lote: e.target.value })} placeholder="Ej: LOTE-A2" required className="p-2.5 border rounded-xl focus:ring-2 focus:ring-green-500 outline-none" />
+                      </label>
+                      <label className="flex flex-col gap-1 col-span-2">
+                        <span className="text-xs font-bold text-gray-600 uppercase">Responsable</span>
+                        <input type="text" value={generalInfo.responsable} onChange={e => setGeneralInfo({ ...generalInfo, responsable: e.target.value })} placeholder="Nombre Completo" required className="p-2.5 border rounded-xl focus:ring-2 focus:ring-green-500 outline-none" />
+                      </label>
+
+                      <span className="col-span-2 bg-slate-50 border border-gray-200 rounded-2xl p-4 space-y-2 block text-xs">
+                        <span className="block text-gray-600">
+                          <strong className="font-bold text-slate-800 uppercase block mb-0.5">Producción Actual:</strong>
+                          Se ingresaron <strong className="text-slate-900">{totales.unidades} uds</strong> ({obtenerTextoDesglose(tableData)}).
+                        </span>
+                        <hr className="border-gray-200" />
+                        <span className="block bg-amber-50/60 border border-amber-100 p-2.5 rounded-xl text-amber-900">
+                          <strong className="font-bold uppercase block mb-1">📦 Inventario de Unidades Sobrantes:</strong>
+                          Quedan <strong className="font-black text-amber-800">{totalSobrantesUnidades} unidades sueltas</strong> que no completaron panal de 30 y **se acumularán automáticamente para el día de mañana**.
+                          <span className="block font-medium text-amber-700/90 mt-0.5">Desglose: ({obtenerTextoSobrantes(sobrantesPorTipo)})</span>
+                        </span>
+                      </span>
+
+                      <label className="flex flex-col gap-1 col-span-2">
+                        <span className="text-xs font-bold text-gray-600 uppercase">Observaciones</span>
+                        <textarea rows="2" value={generalInfo.observaciones} onChange={e => setGeneralInfo({ ...generalInfo, observaciones: e.target.value })} className="p-2.5 border rounded-xl focus:ring-2 focus:ring-green-500 outline-none resize-none"></textarea>
+                      </label>
+                    </fieldset>
+                    <footer className="flex justify-between items-center border-t pt-4">
+                      <button type="button" className="text-gray-500 hover:text-gray-700 font-bold text-sm" onClick={() => setStep(1)}>&larr; Volver</button>
+                      <span className="flex gap-3">
+                        <button type="button" className="bg-red-50 hover:bg-red-100 text-red-600 font-bold py-2.5 px-4 rounded-xl transition-colors text-sm" onClick={handleLimpiarFormulario}>
+                          BORRAR TODO
+                        </button>
+                        <button type="submit" className="bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 px-6 rounded-xl transition-colors shadow-md">
+                          FINALIZAR Y GUARDAR
+                        </button>
+                      </span>
+                    </footer>
+                  </section>
                 )}
+              </form>
+            </article>
+          </span>
+        )}
+
+        {/* MODALES STATUS */}
+        {modals.exito && (
+          <span className="fixed inset-0 bg-slate-950/90 flex items-center justify-center p-4 z-50 block">
+            <article className="text-center text-white max-w-sm flex flex-col items-center">
+              <span className="text-4xl text-green-500 border-4 border-green-500 w-20 h-20 flex items-center justify-center rounded-full font-bold mb-4">✓</span>
+              <h1 className="text-2xl font-black tracking-wide mb-2">¡REGISTRO EXITOSO!</h1>
+              <button type="button" className="w-full bg-green-500 text-slate-950 font-black py-3 px-8 rounded-xl mt-6 hover:bg-green-400 transition-colors" onClick={() => closeModal('exito')}>CONTINUAR</button>
+            </article>
+          </span>
+        )}
+
+        {modals.borrado && (
+          <span className="fixed inset-0 bg-slate-950/90 flex items-center justify-center p-4 z-50 block">
+            <article className="text-center text-white max-w-sm flex flex-col items-center">
+              <span className="text-4xl text-red-500 border-4 border-red-500 w-20 h-20 flex items-center justify-center rounded-full font-bold mb-4">✕</span>
+              <h1 className="text-2xl font-black tracking-wide mb-2">¡FORMULARIO LIMPIADO!</h1>
+              <button type="button" className="w-full bg-red-600 text-white font-black py-3 px-8 rounded-xl mt-6 hover:bg-red-500 transition-colors" onClick={() => closeModal('borrado')}>CONTINUAR</button>
+            </article>
+          </span>
+        )}
+
+        {/* MODAL DETALLE */}
+        {modals.detalle && selectedRecordIndex !== null && (
+          <span className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 block">
+            <article className="bg-white rounded-3xl w-full max-w-xl overflow-hidden shadow-2xl max-h-[90vh] flex flex-col">
+              <header className="flex justify-between items-center px-6 py-4 border-b bg-gray-50 shrink-0">
+                <h2 className="text-lg font-bold text-gray-900">Detalle de Producción</h2>
+                <button className="text-gray-400 hover:text-gray-600 text-2xl font-bold p-1" type="button" onClick={() => closeModal('detalle')}>&times;</button>
+              </header>
+              {(() => {
+                const r = historial[selectedRecordIndex];
+                if (!r) return null;
+                return (
+                  <section className="p-6 overflow-y-auto flex-1 space-y-5">
+                    <span className="grid grid-cols-2 gap-4 text-sm border-b pb-4 block">
+                      <span className="text-gray-500 font-medium block">ID: <span className="font-bold text-gray-900 block text-base">{r.id}</span></span>
+                      <span className="text-gray-500 font-medium block">FECHA: <span className="font-bold text-gray-900 block text-base">{r.fecha}</span></span>
+                      <span className="text-gray-500 font-medium block">GALPÓN: <span className="font-bold text-gray-800 block">{r.galpon}</span></span>
+                      <span className="text-gray-500 font-medium block">LOTE: <span className="font-bold text-gray-800 block">{r.lote || "N/A"}</span></span>
+                      <span className="text-gray-500 font-medium col-span-2 block">RESPONSABLE: <span className="font-bold text-gray-800 block">{r.responsable || "N/A"}</span></span>
+                    </span>
+
+                    <section>
+                      <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2.5">Producción por Tipo</h3>
+                      <span className="bg-slate-50 border border-gray-100 rounded-2xl p-4 grid grid-cols-3 sm:grid-cols-6 gap-2 text-center block">
+                        {CLASIFICACIONES.map((tipo) => {
+                          const det = r.detalles?.[tipo];
+                          const hoy = det?.hoy || 0;
+                          return (
+                            <span key={tipo} className="bg-white border border-gray-200/60 rounded-xl p-2 shadow-sm flex flex-col justify-between block">
+                              <span className="block text-xs font-black text-slate-400 uppercase">{tipo}</span>
+                              <span className="block text-base font-extrabold text-slate-800 mt-1">{hoy} <span className="text-[10px] text-gray-400 font-normal">uds</span></span>
+                              <span className="block text-xs font-bold text-green-600 mt-1">{formatExactPanales(hoy)}</span>
+                            </span>
+                          );
+                        })}
+                      </span>
+                    </section>
 
                 {/* MODAL DETALLE */}
                 {modals.detalle && selectedRecordIndex !== null && (
